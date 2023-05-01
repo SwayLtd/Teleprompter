@@ -1,0 +1,63 @@
+<!-- Depending of the font size, add a padding-top and padding-bottom on the prompt text -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ room_name }} - Teleprompter</title>
+    <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/4178/4178541.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/room.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div class="prompter">
+        <pre id="sync-text" class="prompter-text" contenteditable="plaintext-only"></pre>
+        <div class="controls">
+            <div>
+                <button id="play-pause" class="btn" title="Play/pause""><i class=" fas fa-play"></i></button>
+                <button id="toggle-align" class="btn" title="Change text alignment"><i
+                        class="fas fa-align-center"></i></button>
+                <button id="invert-v" class="btn" title="Revert text vertically"><i
+                        class="fas fa-arrows-alt-v"></i></button>
+                <button id="invert-h" class="btn" title="Revert text horizontally"><i
+                        class="fas fa-arrows-alt-h"></i></button>
+                <button id="save-text" class="btn" title="Save text changes"><i class="fas fa-save"></i></button>
+                <button id="reset" class="btn" title="Reset local settings"><i class="fas fa-undo"></i></button>
+            </div>
+            <div>
+                <div>
+                    Font size: <span id="font-size-value"></span>
+                    <input id="font-size" type="range" min="45" max="72" value="45">
+                </div>
+                <div>
+                    Velocity: <span id="reading-speed-value"></span>
+                    <input id="speed" type="range" min="1" max="10" value="1">
+                </div>
+                <div>
+                    Text width: <span id="sync-text-width-value"></span>
+                    <input id="sync-text-width" type="range" min="45" max="90" value="90">
+                </div>
+            </div>
+            <div>
+                <div>
+                    <input id="text-color" type="color" value="#61dafb"> Text color
+                </div>
+                <div>
+                    <input id="bg-color" type="color" value="#282c34"> Background color
+                </div>
+            </div>
+        </div>
+    </div>
+    <img class="arrow arrow-left" src="https://cdn-icons-png.flaticon.com/512/57/57043.png" alt="Arrow left" />
+    <img class="arrow arrow-right" src="https://cdn-icons-png.flaticon.com/512/57/57043.png" alt="Arrow right" />
+
+    <script src="/static/js/room.js"></script>
+</body>
+
+</html>
