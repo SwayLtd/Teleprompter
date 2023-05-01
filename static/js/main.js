@@ -1,31 +1,33 @@
+// Establish a connection with the server
 const socket = io.connect('http://' + document.domain + ':' + location.port);
 let isPlaying = false;
 let autoScrollInterval;
 
+// When the socket connects to the server, print a message to the console
 socket.on('connect', () => {
     console.log('Connected');
 });
 
+// When the server sends an 'update_text' event
 socket.on('update_text', data => {
+    // Update the content of the synced text area and its properties
     $('#sync-text').html(data['text']);
     $('#sync-text').css('font-size', data['fontSize'] + 'px');
     $('#speed').val(data['speed'] * 10);
     $('#sync-text').scrollTop(data['scrollTop']);
     isPlaying = data['isPlaying'];
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-    if (isPlaying) {
-        clearInterval(autoScrollInterval);
-        autoScrollInterval = setInterval(autoScroll, 25);
-    } else {
-        clearInterval(autoScrollInterval);
-        autoScrollInterval = null;
-    }
+    
+    // Start or stop auto-scrolling based on the 'isPlaying' value
+    toggleAutoScroll();
+
+    // Update the font size and reading speed labels
     $('#font-size-value').text(data['fontSize'] + 'px');
     $('#font-size').val(data['fontSize']);
     $('#reading-speed-value').text(getSpeed() * 100 + '%');
 });
 
-
+// When the 'Save' button is clicked, send the updated text and settings to the server
 $('#save-text').click(() => {
     let text = $('#sync-text').html();
     let fontSize = parseInt($('#sync-text').css('font-size'));
@@ -33,27 +35,24 @@ $('#save-text').click(() => {
     saveState();
 });
 
+// When the font size or speed sliders are changed, send the updated settings to the server
 $('#font-size, #speed').on('input', () => {
     let fontSize = $('#font-size').val();
     socket.emit('text_updated', { 'text': $('#sync-text').html(), 'fontSize': fontSize, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'speed': getSpeed() });
     saveState();
 });
 
+// When the play/pause button is clicked, toggle the auto-scrolling state and send the updated settings to the server
 $('#play-pause').on('click', () => {
     isPlaying = !isPlaying;
     let fontSize = parseInt($('#sync-text').css('font-size'));
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
     socket.emit('text_updated', { 'text': $('#sync-text').html(), 'fontSize': fontSize, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'speed': getSpeed() });
-    if (isPlaying) {
-        clearInterval(autoScrollInterval);
-        autoScroll();
-    } else {
-        clearInterval(autoScrollInterval);
-        autoScrollInterval = null;
-    }
+    toggleAutoScroll();
     saveState();
 });
 
+// When the text color picker is changed, update the text color in the UI and save it to local storage
 $('#text-color').on('input', () => {
     const textColor = $('#text-color').val();
     $('body').css('color', textColor);
@@ -61,12 +60,14 @@ $('#text-color').on('input', () => {
     localStorage.setItem('textColor', textColor);
 });
 
+// When the background color picker is changed, update the background color in the UI and save it to local storage
 $('#bg-color').on('input', () => {
     const bgColor = $('#bg-color').val();
     $('body').css('background-color', bgColor);
     localStorage.setItem('bgColor', bgColor);
 });
 
+// When the alignment button is clicked, toggle the text alignment and save it to local storage
 $('#toggle-align').click(() => {
     const textAlign = $('#sync-text').css('text-align');
 
@@ -91,6 +92,7 @@ $('#toggle-align').click(() => {
     localStorage.setItem('textAlign', newTextAlign);
 });
 
+// Invert the text vertically and save it to local storage
 $('#invert-v').click(() => {
     let scaleY = parseFloat($('#sync-text').css('transform').split(',')[3]);
     let scaleX = parseFloat($('#sync-text').css('transform').split(',')[0].split('(')[1]);
@@ -100,6 +102,7 @@ $('#invert-v').click(() => {
     localStorage.setItem('textOrientation', `scaleX(${scaleX}) scaleY(${scaleY})`);
 });
 
+// Invter the text horizontally and save it to local storage
 $('#invert-h').click(() => {
     let scaleY = parseFloat($('#sync-text').css('transform').split(',')[3]);
     let scaleX = parseFloat($('#sync-text').css('transform').split(',')[0].split('(')[1]);
@@ -109,6 +112,7 @@ $('#invert-h').click(() => {
     localStorage.setItem('textOrientation', `scaleX(${scaleX}) scaleY(${scaleY})`);
 });
 
+// Reset all local storage values to their defaults
 $('#reset').click(() => {
     $('#sync-text').css('transform', 'scaleX(1) scaleY(1)');
     $('#sync-text').css('text-align', 'center');
@@ -131,16 +135,19 @@ $('#reset').click(() => {
     saveState();
 });
 
+// Update the font size label when the font size slider is changed
 $('#font-size').on('input', () => {
     let fontSize = $('#font-size').val();
     $('#font-size-value').text(fontSize);
     $('#sync-text').css('font-size', fontSize + 'px');
 });
 
+// Update the reading speed label when the reading speed slider is changed
 $('#speed').on('input', () => {
     $('#reading-speed-value').text(getSpeed() * 100 + '%');
 });
 
+// Change the sync text with and update the arrows position
 $('#sync-text-width').on('input', function () {
     const syncText = $('#sync-text');
     syncText.width($(this).val() + '%');
@@ -169,13 +176,7 @@ window.addEventListener('keydown', function (e) {
         let fontSize = parseInt($('#sync-text').css('font-size'));
         $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
         socket.emit('text_updated', { 'text': $('#sync-text').html(), 'fontSize': fontSize, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'speed': getSpeed() });
-        if (isPlaying) {
-            clearInterval(autoScrollInterval);
-            autoScroll();
-        } else {
-            clearInterval(autoScrollInterval);
-            autoScrollInterval = null;
-        }
+        toggleAutoScroll();
         saveState();
     } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
         // Increase reading speed
@@ -226,7 +227,9 @@ window.addEventListener('keydown', function (e) {
     }
 });
 
+// Wheel event listener
 window.addEventListener('wheel', (e) => {
+    // Increase/decrease reading speed with the mouse wheel while holding alt
     if (e.altKey) {
         if (e.deltaY > 0) {
             // decrease reading speed
@@ -251,6 +254,7 @@ window.addEventListener('wheel', (e) => {
                 saveState();
             }
         }
+    // Increase/decrease font size with the mouse wheel while holding shift
     } else if (e.shiftKey) {
         if (e.deltaY > 0) {
             // decrease font size
@@ -276,17 +280,28 @@ window.addEventListener('wheel', (e) => {
     }
 });
 
+// Calculate reading speed
 function getSpeed() {
     return parseFloat($('#speed').val()) / 10;
 }
 
-function autoScroll() {
-    const speed = getSpeed();
-    const fontSize = parseInt($('#sync-text').css('font-size'));
-    const scrollTop = $('#sync-text').scrollTop();
-    $('#sync-text').scrollTop(scrollTop + speed * fontSize / 5.62);
+// Toggle the automatic scroll based on reading speed and font size
+function toggleAutoScroll() {
+    if (isPlaying) {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = setInterval(() => {
+            const speed = getSpeed();
+            const fontSize = parseInt($('#sync-text').css('font-size'));
+            const scrollTop = $('#sync-text').scrollTop();
+            $('#sync-text').scrollTop(scrollTop + speed * fontSize / 5.62);
+        }, 25);
+    } else {
+        clearInterval(autoScrollInterval);
+        autoScrollInterval = null;
+    }
 }
 
+// Save the state of the app to the server
 function saveState() {
     const state = {
         fontSize: $('#font-size').val(),
@@ -310,6 +325,7 @@ function saveState() {
     });
 }
 
+// Load the state of the app from the server
 function loadState() {
     $.ajax({
         url: '/load_state',
@@ -325,13 +341,7 @@ function loadState() {
                 $('#sync-text').scrollTop(state.scrollTop + 200 || 0); // + 200 is needed?
                 isPlaying = (typeof state.isPlaying !== 'undefined') ? state.isPlaying : false;
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-                if (isPlaying) {
-                    clearInterval(autoScrollInterval);
-                    autoScrollInterval = setInterval(autoScroll, 25);
-                } else {
-                    clearInterval(autoScrollInterval);
-                    autoScrollInterval = null;
-                }
+                toggleAutoScroll();
             } else {
                 $('#sync-text').html('\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
                 $('#sync-text').css('font-size', '45px');
@@ -350,6 +360,7 @@ function loadState() {
     });
 }
 
+// Load the state of the app from local storage
 function loadLocalStorage() {
     const savedTextColor = localStorage.getItem('textColor');
     const savedBgColor = localStorage.getItem('bgColor');
