@@ -33,7 +33,7 @@ def create_room():
 def room(room_id):
     if room_id not in room_state:
         return redirect(url_for('room_not_found'))
-    room_name = room_state[room_id].get('room_name', 'Unnamed Room')
+    room_name = room_state[room_id].get('room_name', 'Unnamed Room') # TO DO - Fix the "Unnamed Room" bug when I reset the local settings
     return render_template('room.html', room_id=room_id, room_name=room_name)
 
 # Socket event when a user joins a room
@@ -49,13 +49,16 @@ def on_join(data):
 def room_not_found():
     return render_template('errors/404.html'), 404
 
-# Route to save the state of a room
 @app.route('/save_state', methods=['POST'])
 def save_state():
     state_data = request.get_json()
     room_id = state_data['room_id']
+    room_name = state_data.get('room_name', '').strip()  # Get the room_name if it exists in state_data
+    if room_name:
+        room_state[room_id]['room_name'] = room_name  # Update the room_name in room_state
     room_state[room_id] = state_data
     return jsonify({'result': 'success'})
+
 
 # Route to load the state of a room
 @app.route('/load_state', methods=['GET'])
@@ -66,10 +69,13 @@ def load_state():
     else:
         return jsonify({})
 
-# Socket event when the text is updated in a room
 @socketio.on('text_updated')
 def handle_text_update(data):
     room_id = data['room_id']
+    room_name = data.get('room_name', None)  # Get the room_name if it exists in data
+    if room_name is not None:
+        room_name = room_name.strip()
+        data['room_name'] = room_name
     room_state[room_id] = data
     emit('update_text', data, room=room_id, include_self=False)
 
