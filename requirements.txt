@@ -1,0 +1,4 @@
+# pip install -r requirements.txt
+
+Flask==2.2.3
+Flask-SocketIO==5.3.3
