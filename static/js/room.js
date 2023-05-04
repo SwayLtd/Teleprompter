@@ -47,7 +47,7 @@ socket.on('update_text', data => {
         }
         if (data['room_name'] !== $('#room-name').text().trim()) {
             $('#room-name').text(data['room_name']);
-            document.title = data['room_name'];
+            document.title = data['room_name'] + " - Teleprompter";
         }
     }
 });
@@ -58,7 +58,7 @@ $('#room-name').on('input', () => {
         'isPlaying': isPlaying,
         'room_name': $('#room-name').text().trim()
     });
-    document.title = $('#room-name').text().trim();
+    document.title = $('#room-name').text().trim() + " - Teleprompter";
     saveState();
 });
 
@@ -374,7 +374,7 @@ function loadState() {
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
                 toggleAutoScroll();
                 $('#room-name').text(state.room_name || 'Unnamed Room');
-                document.title = state.room_name || 'Unnamed Room';
+                document.title = state.room_name + " - Teleprompter" || 'Unnamed Room' + " - Teleprompter";
             } else {
                 $('#sync-text').html('\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
                 $('#sync-text').css('font-size', '45px');
