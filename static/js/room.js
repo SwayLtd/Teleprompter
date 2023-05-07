@@ -1,12 +1,3 @@
-// TO DO - create an interface to execute the script with "Run" button and "Open browser" button
-// TO DO - rename all "reading speed" to "velocity"
-// TO DO - Merge all the socket.emit() calls into one function
-// TO DO - Merge saveState and socket.emit() calls into one function
-// TO DO - Check if I can delete the isPlaying variable in the socket.emit() calls where it's not needed
-// TO DO - Delete font size, velocity changes where not needed
-// TO DO - Rename the update_text and text_updated events to something more global like "properties"
-// TO DO - Refactor the code
-
 // Establish a connection with the server
 const socket = io.connect('http://' + document.domain + ':' + location.port);
 // Get the room_id from the URL (assuming it's in the format /room/<room_id>)
@@ -21,33 +12,34 @@ socket.on('connect', () => {
     console.log('Connected to room', room_id);
 });
 
-// TO DO - Check if the value is the same as the last value
 // When the server sends an 'update_text' event
 socket.on('update_text', data => {
+    console.log(data);
+    console.log(room_id, parseInt($('#sync-text').css('font-size')), getSpeed(), $('#sync-text').scrollTop(), isPlaying, $('#room-name').text().trim());
     if (data['room_id'] === room_id) {
-        if (data['text'] !== $('#sync-text').html()) {
+        if (data['text'] !== $('#sync-text').html() && data['text'] !== undefined) {
             $('#sync-text').html(data['text']);
         }
-        if (data['fontSize'] !== parseInt($('#sync-text').css('font-size'))) {
+        if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
             $('#sync-text').css('font-size', data['fontSize'] + 'px');
             $('#font-size').val(data['fontSize']);
             $('#font-size-value').text(data['fontSize'] + 'px');
         }
-        if (data['speed'] !== getSpeed()) {
+        if (data['speed'] !== getSpeed() && data['speed'] !== undefined) {
             $('#speed').val(data['speed'] * 10);
             $('#reading-speed-value').text(data['speed'] * 100 + '%');
         }
-        if (data['scrollTop'] !== $('#sync-text').scrollTop()) {
+        if (data['scrollTop'] !== $('#sync-text').scrollTop() && data['scrollTop'] !== undefined) {
             $('#sync-text').scrollTop(data['scrollTop']);
         }
-        if (data['isPlaying'] !== isPlaying) {
+        if (data['isPlaying'] !== isPlaying && data['isPlaying'] !== undefined) {
             isPlaying = data['isPlaying'];
             $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
             toggleAutoScroll();
         }
-        if (data['room_name'] !== $('#room-name').text().trim()) {
+        if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
             $('#room-name').text(data['room_name']);
-            document.title = data['room_name'] + " - Teleprompter";
+            document.title = data['room_name'] + " - R's prompter";
         }
     }
 });
@@ -58,7 +50,7 @@ $('#room-name').on('input', () => {
         'isPlaying': isPlaying,
         'room_name': $('#room-name').text().trim()
     });
-    document.title = $('#room-name').text().trim() + " - Teleprompter";
+    document.title = $('#room-name').text().trim() + " - R's prompter";
     saveState();
 });
 
@@ -88,6 +80,27 @@ $('#play-pause').on('click', () => {
     socket.emit('text_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'speed': getSpeed() });
     toggleAutoScroll();
     saveState();
+});
+
+// Show the color picker when the "Text Color" button is clicked
+function formatText(command) {
+    if (command === 'foreColor') {
+        document.getElementById('colorPicker').click();
+    } else {
+        document.execCommand(command, false, null);
+    }
+}
+
+// Change the color inside the text editor
+function changeColor() {
+    const colorPicker = document.getElementById('colorPicker');
+    const selectedColor = colorPicker.value;
+    document.execCommand('foreColor', false, selectedColor);
+}
+
+// Save the selected command state (foreColor) when text is selected
+document.getElementById('sync-text').addEventListener('mouseup', () => {
+    document.queryCommandState('hiliteColor');
 });
 
 // When the text color picker is changed, update the text color in the UI and save it to local storage
@@ -170,7 +183,6 @@ $('#reset').click(() => {
     localStorage.clear();
 });
 
-// TO DO - merge the local changes with the server changes function
 // Update the font size label when the font size slider is changed
 $('#font-size').on('input', () => {
     let fontSize = $('#font-size').val();
@@ -178,7 +190,6 @@ $('#font-size').on('input', () => {
     $('#sync-text').css('font-size', fontSize + 'px');
 });
 
-// TO DO - merge the local changes with the server changes function
 // Update the reading speed label when the reading speed slider is changed
 $('#speed').on('input', () => {
     $('#reading-speed-value').text(getSpeed() * 100 + '%');
@@ -374,7 +385,7 @@ function loadState() {
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
                 toggleAutoScroll();
                 $('#room-name').text(state.room_name || 'Unnamed Room');
-                document.title = state.room_name + " - Teleprompter" || 'Unnamed Room' + " - Teleprompter";
+                document.title = state.room_name + " - R's prompter" || 'Unnamed Room' + " - R's prompter";
             } else {
                 $('#sync-text').html('\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
                 $('#sync-text').css('font-size', '45px');

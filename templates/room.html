@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ room_name }} - Teleprompter</title>
+    <title>{{ room_name }} - R's prompter</title>
     <link rel="icon" type="image/x-icon" href="https://cdn-icons-png.flaticon.com/512/4178/4178541.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/room.css">
@@ -17,21 +17,32 @@
 
 <body>
     <div class="room-information">
-        <span id="room-name" contenteditable></span>
+        <span id="room-name" contenteditable spellcheck="false"></span>
     </div>
     <div class="prompter">
-        <pre id="sync-text" class="prompter-text" contenteditable="plaintext-only"></pre>
+        <pre id="sync-text" class="prompter-text" contenteditable spellcheck="false"></pre>
+
         <div class="controls">
             <div>
-                <button id="play-pause" class="btn" title="Play/pause""><i class=" fas fa-play"></i></button>
-                <button id="toggle-align" class="btn" title="Change text alignment"><i
-                        class="fas fa-align-center"></i></button>
-                <button id="invert-v" class="btn" title="Revert text vertically"><i
-                        class="fas fa-arrows-alt-v"></i></button>
-                <button id="invert-h" class="btn" title="Revert text horizontally"><i
-                        class="fas fa-arrows-alt-h"></i></button>
-                <button id="sync" class="btn" title="Sync properties"><i class="fas fa-sync-alt"></i></button>
-                <button id="reset" class="btn" title="Reset local settings"><i class="fas fa-undo"></i></button>
+                <div>
+                    <button id="play-pause" class="btn" title="Play/pause"><i class=" fas fa-play"></i></button>
+                    <button id="toggle-align" class="btn" title="Change text alignment"><i
+                            class="fas fa-align-center"></i></button>
+                    <button id="invert-v" class="btn" title="Revert text vertically"><i
+                            class="fas fa-arrows-alt-v"></i></button>
+                    <button id="invert-h" class="btn" title="Revert text horizontally"><i
+                            class="fas fa-arrows-alt-h"></i></button>
+                    <button id="sync" class="btn" title="Sync properties"><i class="fas fa-sync-alt"></i></button>
+                    <button id="reset" class="btn" title="Reset local settings"><i class="fas fa-undo"></i></button>
+                </div>
+                <div>
+                    <!-- Text formatting buttons -->
+                    <button class="btn" onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
+                    <button class="btn" onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
+                    <button class="btn" onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
+                    <button class="btn" onclick="formatText('foreColor')"><i class="fas fa-font"></i></button>
+                    <input type="color" id="colorPicker" onchange="changeColor()" style="display:none">
+                </div>
             </div>
             <div>
                 <div>
