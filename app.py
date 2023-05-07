@@ -1,5 +1,5 @@
-from flask import Flask, render_template, session, request, jsonify, redirect, url_for
-from flask_socketio import SocketIO, emit, join_room, leave_room
+from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask_socketio import SocketIO, emit, join_room
 import random, string
 
 # Initialize Flask app and SocketIO
@@ -33,7 +33,7 @@ def create_room():
 def room(room_id):
     if room_id not in room_state:
         return redirect(url_for('room_not_found'))
-    room_name = room_state[room_id].get('room_name', 'Unnamed Room') # TO DO - Fix the "Unnamed Room" bug when I reset the local settings
+    room_name = room_state[room_id].get('room_name', 'Unnamed Room')
     return render_template('room.html', room_id=room_id, room_name=room_name)
 
 # Socket event when a user joins a room
