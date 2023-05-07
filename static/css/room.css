@@ -94,13 +94,13 @@ body {
 
 .arrow-left {
     top: 45%;
-    right: 0;
+    right: -10px;
     rotate: 180deg;
 }
 
 .arrow-right {
     top: 45%;
-    left: 0;
+    left: -10px;
 }
 
 /* width */
