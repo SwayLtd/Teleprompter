@@ -42,7 +42,7 @@ def on_join(data):
     room_id = data['room_id']
     join_room(room_id)
     if room_id in room_state:
-        emit('update_text', room_state[room_id])
+        emit('update_properties', room_state[room_id])
 
 # Route for the 404 page
 @app.route('/notfound')
@@ -69,22 +69,23 @@ def load_state():
     else:
         return jsonify({})
 
-@socketio.on('text_updated')
-def handle_text_update(data):
+# Socket event when a user updates the properties of a room
+@socketio.on('properties_updated')
+def handle_properties_update(data):
     room_id = data['room_id']
     room_name = data.get('room_name', None)  # Get the room_name if it exists in data
     if room_name is not None:
         room_name = room_name.strip()
         data['room_name'] = room_name
     room_state[room_id] = data
-    emit('update_text', data, room=room_id, include_self=False)
+    emit('update_properties', data, room=room_id, include_self=False)
 
 # Socket event when a user requests the initial state of a room
 @socketio.on('request_initial_state')
 def handle_initial_state(data):
     room_id = data['room_id']
     if room_id in room_state:
-        emit('update_text', room_state[room_id])
+        emit('update_properties', room_state[room_id])
 
 # Run the Flask app
 if __name__ == '__main__':

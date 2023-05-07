@@ -12,10 +12,8 @@ socket.on('connect', () => {
     console.log('Connected to room', room_id);
 });
 
-// When the server sends an 'update_text' event
-socket.on('update_text', data => {
-    console.log(data);
-    console.log(room_id, parseInt($('#sync-text').css('font-size')), getSpeed(), $('#sync-text').scrollTop(), isPlaying, $('#room-name').text().trim());
+// When the server sends an 'update_properties' event
+socket.on('update_properties', data => {
     if (data['room_id'] === room_id) {
         if (data['text'] !== $('#sync-text').html() && data['text'] !== undefined) {
             $('#sync-text').html(data['text']);
@@ -25,9 +23,9 @@ socket.on('update_text', data => {
             $('#font-size').val(data['fontSize']);
             $('#font-size-value').text(data['fontSize'] + 'px');
         }
-        if (data['speed'] !== getSpeed() && data['speed'] !== undefined) {
-            $('#speed').val(data['speed'] * 10);
-            $('#reading-speed-value').text(data['speed'] * 100 + '%');
+        if (data['velocity'] !== getVelocity() && data['velocity'] !== undefined) {
+            $('#velocity').val(data['velocity'] * 10);
+            $('#velocity-value').text(data['velocity'] * 100 + '%');
         }
         if (data['scrollTop'] !== $('#sync-text').scrollTop() && data['scrollTop'] !== undefined) {
             $('#sync-text').scrollTop(data['scrollTop']);
@@ -45,7 +43,7 @@ socket.on('update_text', data => {
 });
 
 $('#room-name').on('input', () => {
-    socket.emit('text_updated', {
+    socket.emit('properties_updated', {
         'room_id': room_id,
         'isPlaying': isPlaying,
         'room_name': $('#room-name').text().trim()
@@ -55,21 +53,21 @@ $('#room-name').on('input', () => {
 });
 
 $('#sync-text').on('input', () => {
-    socket.emit('text_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'isPlaying': isPlaying });
+    socket.emit('properties_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'isPlaying': isPlaying });
     saveState();
 });
 
 // When the 'Save' button is clicked, send the updated text and settings to the server
 $('#sync-text').click(() => {
     let fontSize = parseInt($('#sync-text').css('font-size'));
-    socket.emit('text_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'fontSize': fontSize, 'speed': getSpeed(), scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, room_name: $('#room-name').text().trim() });
+    socket.emit('properties_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'fontSize': fontSize, 'velocity': getVelocity(), scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, room_name: $('#room-name').text().trim() });
     saveState();
 });
 
-// When the font size or speed sliders are changed, send the updated settings to the server
-$('#font-size, #speed').on('input', () => {
+// When the font size or velocity sliders are changed, send the updated settings to the server
+$('#font-size, #velocity').on('input', () => {
     let fontSize = $('#font-size').val();
-    socket.emit('text_updated', { 'room_id': room_id, 'fontSize': fontSize, 'speed': getSpeed(), 'isPlaying': isPlaying });
+    socket.emit('properties_updated', { 'room_id': room_id, 'fontSize': fontSize, 'velocity': getVelocity(), 'isPlaying': isPlaying });
     saveState();
 });
 
@@ -77,9 +75,9 @@ $('#font-size, #speed').on('input', () => {
 $('#play-pause').on('click', () => {
     isPlaying = !isPlaying;
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-    socket.emit('text_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'speed': getSpeed() });
-    toggleAutoScroll();
+    socket.emit('properties_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
     saveState();
+    toggleAutoScroll();
 });
 
 // Show the color picker when the "Text Color" button is clicked
@@ -98,18 +96,13 @@ function changeColor() {
     document.execCommand('foreColor', false, selectedColor);
 }
 
-// Save the selected command state (foreColor) when text is selected
-document.getElementById('sync-text').addEventListener('mouseup', () => {
-    document.queryCommandState('hiliteColor');
-});
-
 // When the text color picker is changed, update the text color in the UI and save it to local storage
-$('#text-color').on('input', () => {
-    const textColor = $('#text-color').val();
-    $('body').css('color', textColor);
-    $('#sync-text').css('color', textColor);
-    localStorage.setItem('textColor', textColor);
-});
+// $('#text-color').on('input', () => {
+//     const textColor = $('#text-color').val();
+//     $('body').css('color', textColor);
+//     $('#sync-text').css('color', textColor);
+//     localStorage.setItem('textColor', textColor);
+// });
 
 // When the background color picker is changed, update the background color in the UI and save it to local storage
 $('#bg-color').on('input', () => {
@@ -169,7 +162,7 @@ $('#reset').click(() => {
     $('#sync-text').css('text-align', 'center');
     $('#toggle-align i').attr('class', 'fas fa-align-center');
     // text-color to #61dafb and background-color to #282c34
-    $('#text-color').val('#61dafb');
+    // $('#text-color').val('#61dafb');
     $('#bg-color').val('#282c34');
     $('#sync-text').css('color', '#61dafb');
     $('body').css('color', '#61dafb');
@@ -190,9 +183,9 @@ $('#font-size').on('input', () => {
     $('#sync-text').css('font-size', fontSize + 'px');
 });
 
-// Update the reading speed label when the reading speed slider is changed
-$('#speed').on('input', () => {
-    $('#reading-speed-value').text(getSpeed() * 100 + '%');
+// Update the velocity label when the velocity slider is changed
+$('#velocity').on('input', () => {
+    $('#velocity-value').text(getVelocity() * 100 + '%');
 });
 
 // Change the sync text with and update the arrows position
@@ -217,79 +210,95 @@ window.addEventListener('keydown', function (e) {
         return;
     }
 
-    if (e.key === e.ctrlKey && e.key === 's') {
+    if ((e.key === e.ctrlKey && e.key === 's') || (e.key === e.ctrlKey && e.key === 'S')) {
         // Save state
+        e.preventDefault()
         let fontSize = parseInt($('#sync-text').css('font-size'));
-        socket.emit('text_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'fontSize': fontSize, 'speed': getSpeed(), scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, room_name: $('#room-name').text().trim() });
+        socket.emit('properties_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'fontSize': fontSize, 'velocity': getVelocity(), scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, room_name: $('#room-name').text().trim() });
         saveState();
     } else if (e.key === ' ' || e.key === 'p' || e.key === 'P') {
         // Toggle play/pause
+        e.preventDefault()
         isPlaying = !isPlaying;
         $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-        socket.emit('text_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'speed': getSpeed() });
+        socket.emit('properties_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
         toggleAutoScroll();
         saveState();
-    } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
-        // Increase reading speed
-        let speed = getSpeed();
-        if (speed < 1) {
-            speed += 0.1;
-            $('#speed').val(speed * 10);
-            $('#reading-speed-value').text(speed * 100 + '%');
-            socket.emit('text_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'speed': getSpeed() });
+    } else if (e.key === 'ArrowUp') {
+        // Increase velocity
+        e.preventDefault()
+        let velocity = getVelocity();
+        if (velocity < 1) {
+            velocity += 0.1;
+            $('#velocity').val(velocity * 10);
+            $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
+            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
             saveState();
         }
-    } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
-        // Decrease reading speed
-        let speed = getSpeed();
-        if (speed > 0.1) {
-            speed -= 0.1;
-            $('#speed').val(speed * 10);
-            $('#reading-speed-value').text(speed * 100 + '%');
-            socket.emit('text_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'speed': getSpeed() });
+    } else if (e.key === 'ArrowDown') {
+        // Decrease velocity
+        e.preventDefault()
+        let velocity = getVelocity();
+        if (velocity > 0.1) {
+            velocity -= 0.1;
+            $('#velocity').val(velocity * 10);
+            $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
+            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
             saveState();
         }
-    } // decrease font size
+    }
     else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        // decrease font size
         let fontSize = parseInt($('#sync-text').css('font-size'));
-        fontSize -= 1;
-        $('#font-size').val(fontSize);
-        $('#font-size-value').text(fontSize + 'px');
-        socket.emit('text_updated', { 'room_id': room_id, 'fontSize': fontSize, 'isPlaying': isPlaying });
-        saveState();
-    } // increase font size
+        console.log(fontSize);
+        if (fontSize > 45) {
+            fontSize -= 1;
+            $('#font-size').val(fontSize);
+            $('#font-size-value').text(fontSize + 'px');
+            $('#sync-text').css('font-size', fontSize + 'px');
+            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
+            saveState();
+        }
+    }
     else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        // increase font size
         let fontSize = parseInt($('#sync-text').css('font-size'));
-        fontSize += 1;
-        $('#font-size').val(fontSize);
-        $('#font-size-value').text(fontSize + 'px');
-        socket.emit('text_updated', { 'room_id': room_id, 'fontSize': fontSize, 'isPlaying': isPlaying });
-        saveState();
+        console.log(fontSize);
+        if (fontSize < 72) {
+            fontSize += 1;
+            $('#font-size').val(fontSize);
+            $('#font-size-value').text(fontSize + 'px');
+            $('#sync-text').css('font-size', fontSize + 'px');
+            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
+            saveState();
+        }
     }
 });
 
 // Wheel event listener
 window.addEventListener('wheel', (e) => {
-    // Increase/decrease reading speed with the mouse wheel while holding alt
+    // Increase/decrease velocity with the mouse wheel while holding alt
     if (e.altKey) {
         if (e.deltaY > 0) {
-            // decrease reading speed
-            let speed = getSpeed();
-            if (speed > 0.1) {
-                speed -= 0.1;
-                $('#speed').val(speed * 10);
-                $('#reading-speed-value').text(speed * 100 + '%');
-                socket.emit('text_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'speed': getSpeed() });
+            // decrease velocity
+            let velocity = getVelocity();
+            if (velocity > 0.1) {
+                velocity -= 0.1;
+                $('#velocity').val(velocity * 10);
+                $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
+                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
                 saveState();
             }
         } else {
-            // increase reading speed
-            let speed = getSpeed();
-            if (speed < 1) {
-                speed += 0.1;
-                $('#speed').val(speed * 10);
-                $('#reading-speed-value').text(speed * 100 + '%');
-                socket.emit('text_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'speed': getSpeed() });
+            // increase velocity
+            let velocity = getVelocity();
+            if (velocity < 1) {
+                velocity += 0.1;
+                $('#velocity').val(velocity * 10);
+                $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
+                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
                 saveState();
             }
         }
@@ -300,9 +309,11 @@ window.addEventListener('wheel', (e) => {
             let fontSize = parseInt($('#sync-text').css('font-size'));
             if (fontSize > 45) {
                 fontSize -= 1;
+                console.log(fontSize);
                 $('#font-size').val(fontSize);
                 $('#font-size-value').text(fontSize + 'px');
-                socket.emit('text_updated', { 'room_id': room_id, 'fontSize': fontSize, 'isPlaying': isPlaying });
+                $('#sync-text').css('font-size', fontSize + 'px');
+                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
                 saveState();
             }
         } else {
@@ -310,29 +321,42 @@ window.addEventListener('wheel', (e) => {
             let fontSize = parseInt($('#sync-text').css('font-size'));
             if (fontSize < 72) {
                 fontSize += 1;
+                console.log(fontSize);
                 $('#font-size').val(fontSize);
                 $('#font-size-value').text(fontSize + 'px');
-                socket.emit('text_updated', { 'room_id': room_id, 'fontSize': fontSize, 'isPlaying': isPlaying });
+                $('#sync-text').css('font-size', fontSize + 'px');
+                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
                 saveState();
             }
         }
     }
 });
 
-// Calculate reading speed
-function getSpeed() {
-    return parseFloat($('#speed').val()) / 10;
+// Prevent scrolling when playing
+document.querySelector('#sync-text').addEventListener('wheel', preventScroll, { passive: false });
+function preventScroll(e) {
+    if (isPlaying) {
+        e.preventDefault();
+        e.stopPropagation(); // TO DO : Is this necessary?
+    }
+
+    return false;
 }
 
-// Toggle the automatic scroll based on reading speed and font size
+// Calculate velocity
+function getVelocity() {
+    return parseFloat($('#velocity').val()) / 10;
+}
+
+// Toggle the automatic scroll based on velocity and font size
 function toggleAutoScroll() {
     if (isPlaying) {
         clearInterval(autoScrollInterval);
         autoScrollInterval = setInterval(() => {
-            const speed = getSpeed();
+            const velocity = getVelocity();
             const fontSize = parseInt($('#sync-text').css('font-size'));
             const scrollTop = $('#sync-text').scrollTop();
-            $('#sync-text').scrollTop(scrollTop + speed * fontSize / 5.62);
+            $('#sync-text').scrollTop(scrollTop + velocity * fontSize / 5.62);
         }, 25);
     } else {
         clearInterval(autoScrollInterval);
@@ -344,7 +368,7 @@ function toggleAutoScroll() {
 function saveState() {
     const state = {
         fontSize: $('#font-size').val(),
-        speed: getSpeed(),
+        velocity: getVelocity(),
         isPlaying: isPlaying,
         text: $('#sync-text').html(),
         scrollTop: $('#sync-text').scrollTop(),
@@ -378,8 +402,8 @@ function loadState() {
                 $('#sync-text').css('font-size', (state.fontSize || 45) + 'px');
                 $('#font-size-value').text((state.fontSize || 45) + 'px');
                 $('#font-size').val(state.fontSize || 45);
-                $('#speed').val(((state.speed || 0.1) * 10));
-                $('#reading-speed-value').text((state.speed || 0.1) * 100 + '%');
+                $('#velocity').val(((state.velocity || 0.1) * 10));
+                $('#velocity-value').text((state.velocity || 0.1) * 100 + '%');
                 $('#sync-text').scrollTop(state.scrollTop + 200 || 0); // + 200 is needed?
                 isPlaying = (typeof state.isPlaying !== 'undefined') ? state.isPlaying : false;
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
@@ -391,8 +415,8 @@ function loadState() {
                 $('#sync-text').css('font-size', '45px');
                 $('#font-size-value').text('45px');
                 $('#font-size').val(45);
-                $('#speed').val(1); // 0.3 * 10
-                $('#reading-speed-value').text(10 + '%');
+                $('#velocity').val(1); // 0.3 * 10
+                $('#velocity-value').text(10 + '%');
                 $('#sync-text').scrollTop(0);
                 isPlaying = false;
                 $('#play-pause').html('<i class="fas fa-play"></i>');
@@ -413,11 +437,11 @@ function loadLocalStorage() {
     const savedTextOrientation = localStorage.getItem('textOrientation');
     const savedSyncTextWidth = localStorage.getItem('syncTextWidth');
 
-    if (savedTextColor) {
-        $('#text-color').val(savedTextColor);
-        $('#sync-text').css('color', savedTextColor);
-        $('body').css('color', savedTextColor);
-    }
+    // if (savedTextColor) {
+    //     $('#text-color').val(savedTextColor);
+    //     $('#sync-text').css('color', savedTextColor);
+    //     $('body').css('color', savedTextColor);
+    // }
 
     if (savedBgColor) {
         $('#bg-color').val(savedBgColor);
@@ -447,9 +471,9 @@ function loadLocalStorage() {
     }
 }
 
-// Initialize font size and reading speed labels
+// Initialize font size and velocity labels
 $('#font-size-value').text($('#font-size').val() + 'px');
-$('#reading-speed-value').text(getSpeed() * 100 + '%');
+$('#velocity-value').text(getVelocity() * 100 + '%');
 $('#sync-text-width-value').text($('#sync-text-width').val() + '%');
 
 // Initialize settings
