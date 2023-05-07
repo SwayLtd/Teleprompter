@@ -18,51 +18,37 @@ socket.on('update_properties', data => {
         if (data['text'] !== $('#sync-text').html() && data['text'] !== undefined) {
             $('#sync-text').html(data['text']);
         }
-        if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
-            $('#sync-text').css('font-size', data['fontSize'] + 'px');
-            $('#font-size').val(data['fontSize']);
-            $('#font-size-value').text(data['fontSize'] + 'px');
-        }
-        if (data['velocity'] !== getVelocity() && data['velocity'] !== undefined) {
-            $('#velocity').val(data['velocity'] * 10);
-            $('#velocity-value').text(data['velocity'] * 100 + '%');
-        }
-        if (data['scrollTop'] !== $('#sync-text').scrollTop() && data['scrollTop'] !== undefined) {
-            $('#sync-text').scrollTop(data['scrollTop']);
+        if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
+            $('#room-name').text(data['room_name']);
+            document.title = data['room_name'] + " - R's prompter";
         }
         if (data['isPlaying'] !== isPlaying && data['isPlaying'] !== undefined) {
             isPlaying = data['isPlaying'];
             $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
             toggleAutoScroll();
         }
-        if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
-            $('#room-name').text(data['room_name']);
-            document.title = data['room_name'] + " - R's prompter";
+        if (data['scrollTop'] !== $('#sync-text').scrollTop() && data['scrollTop'] !== undefined) {
+            $('#sync-text').scrollTop(data['scrollTop']);
+        }
+        if (data['velocity'] !== getVelocity() && data['velocity'] !== undefined) {
+            $('#velocity').val(data['velocity'] * 10);
+            $('#velocity-value').text(data['velocity'] * 100 + '%');
+        }
+        if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
+            $('#sync-text').css('font-size', data['fontSize'] + 'px');
+            $('#font-size').val(data['fontSize']);
+            $('#font-size-value').text(data['fontSize'] + 'px');
         }
     }
-});
-
-$('#room-name').on('input', () => {
-    updateAndSave({ 'room_name': $('#room-name').text().trim() });
-    document.title = $('#room-name').text().trim() + " - R's prompter";
 });
 
 $('#sync-text').on('input', () => {
     updateAndSave({ 'text': $('#sync-text').html() });
 });
 
-// Update the font size label when the font size slider is changed
-$('#font-size').on('input', () => {
-    let fontSize = $('#font-size').val();
-    $('#font-size-value').text(fontSize + 'px');
-    $('#sync-text').css('font-size', fontSize + 'px');
-    updateAndSave({ 'fontSize': fontSize });
-});
-
-// Update the velocity label when the velocity slider is changed
-$('#velocity').on('input', () => {
-    $('#velocity-value').text(getVelocity() * 100 + '%');
-    updateAndSave({ 'velocity': getVelocity() });
+$('#room-name').on('input', () => {
+    updateAndSave({ 'room_name': $('#room-name').text().trim() });
+    document.title = $('#room-name').text().trim() + " - R's prompter";
 });
 
 // When the play/pause button is clicked, toggle the auto-scrolling state and send the updated settings to the server
@@ -75,37 +61,6 @@ $('#play-pause').on('click', () => {
         updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
     }
     toggleAutoScroll();
-});
-
-// Show the color picker when the "Text Color" button is clicked
-function formatText(command) {
-    if (command === 'foreColor') {
-        document.getElementById('colorPicker').click();
-    } else {
-        document.execCommand(command, false, null);
-    }
-}
-
-// Change the color inside the text editor
-function changeColor() {
-    const colorPicker = document.getElementById('colorPicker');
-    const selectedColor = colorPicker.value;
-    document.execCommand('foreColor', false, selectedColor);
-}
-
-// When the text color picker is changed, update the text color in the UI and save it to local storage
-// $('#text-color').on('input', () => {
-//     const textColor = $('#text-color').val();
-//     $('body').css('color', textColor);
-//     $('#sync-text').css('color', textColor);
-//     localStorage.setItem('textColor', textColor);
-// });
-
-// When the background color picker is changed, update the background color in the UI and save it to local storage
-$('#bg-color').on('input', () => {
-    const bgColor = $('#bg-color').val();
-    $('body').css('background-color', bgColor);
-    localStorage.setItem('bgColor', bgColor);
 });
 
 // When the alignment button is clicked, toggle the text alignment and save it to local storage
@@ -167,17 +122,47 @@ $('#reset').click(() => {
     // reset sync text width and arrows position
     $('#sync-text-width').val(90);
     $('#sync-text').width('90%');
-    $('.arrow-left').css('right', '0');
-    $('.arrow-right').css('left', '0');
+    $('.arrow-left').css('right', '-10px');
+    $('.arrow-right').css('left', '-10px');
     $('#sync-text-width-value').text('90%');
     localStorage.clear();
+});
+
+// Show the color picker when the "Text Color" button is clicked
+function formatText(command) {
+    if (command === 'foreColor') {
+        document.getElementById('colorPicker').click();
+    } else {
+        document.execCommand(command, false, null);
+    }
+}
+
+// Change the color inside the text editor
+function changeColor() {
+    const colorPicker = document.getElementById('colorPicker');
+    const selectedColor = colorPicker.value;
+    document.execCommand('foreColor', false, selectedColor);
+}
+
+// Update the velocity label when the velocity slider is changed
+$('#velocity').on('input', () => {
+    $('#velocity-value').text(getVelocity() * 100 + '%');
+    updateAndSave({ 'velocity': getVelocity() });
+});
+
+// Update the font size label when the font size slider is changed
+$('#font-size').on('input', () => {
+    let fontSize = $('#font-size').val();
+    $('#font-size-value').text(fontSize + 'px');
+    $('#sync-text').css('font-size', fontSize + 'px');
+    updateAndSave({ 'fontSize': fontSize });
 });
 
 // Change the sync text with and update the arrows position
 $('#sync-text-width').on('input', function () {
     const syncText = $('#sync-text');
     syncText.width($(this).val() + '%');
-    const arrowPosition = ((100 - parseInt($(this).val())) / 2) - 5;
+    const arrowPosition = ((100 - parseInt($(this).val())) / 2) - 6;
 
     // Change the arrow positions
     $('.arrow-left').css('right', arrowPosition + '%');
@@ -188,6 +173,21 @@ $('#sync-text-width').on('input', function () {
     localStorage.setItem('syncTextWidth', $(this).val());
 });
 
+// When the text color picker is changed, update the text color in the UI and save it to local storage
+// $('#text-color').on('input', () => {
+//     const textColor = $('#text-color').val();
+//     $('body').css('color', textColor);
+//     $('#sync-text').css('color', textColor);
+//     localStorage.setItem('textColor', textColor);
+// });
+
+// When the background color picker is changed, update the background color in the UI and save it to local storage
+$('#bg-color').on('input', () => {
+    const bgColor = $('#bg-color').val();
+    $('body').css('background-color', bgColor);
+    localStorage.setItem('bgColor', bgColor);
+});
+
 // Shortcuts
 window.addEventListener('keydown', function (e) {
     // Ignore keydown events if the target is the #sync-text area
@@ -195,22 +195,21 @@ window.addEventListener('keydown', function (e) {
         return;
     }
 
+    e.preventDefault();
+
     // condition with ctrlKey and s in lowercase and uppercase
-    if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
-        // Save state
-        e.preventDefault()
-        let fontSize = parseInt($('#sync-text').css('font-size'));
-        updateAndSave({ fontSize: fontSize, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity(), room_name: $('#room-name').text().trim() });
-    } else if (e.key === ' ' || e.key === 'p' || e.key === 'P') {
+    if (e.key === ' ' || e.key === 'p' || e.key === 'P') {
         // Toggle play/pause
-        e.preventDefault()
         isPlaying = !isPlaying;
         $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
         updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
         toggleAutoScroll();
+    } else if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+        // Save state
+        let fontSize = parseInt($('#sync-text').css('font-size'));
+        updateAndSave({ fontSize: fontSize, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity(), room_name: $('#room-name').text().trim() });
     } else if (e.key === 'ArrowUp') {
         // Increase velocity
-        e.preventDefault()
         let velocity = getVelocity();
         if (velocity < 1) {
             velocity += 0.1;
@@ -220,7 +219,6 @@ window.addEventListener('keydown', function (e) {
         }
     } else if (e.key === 'ArrowDown') {
         // Decrease velocity
-        e.preventDefault()
         let velocity = getVelocity();
         if (velocity > 0.1) {
             velocity -= 0.1;
@@ -228,27 +226,23 @@ window.addEventListener('keydown', function (e) {
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
             updateAndSave({ 'velocity': getVelocity() });
         }
-    }
-    else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        // decrease font size
+    } else if (e.key === 'ArrowRight') {
+        // Increase font size
         let fontSize = parseInt($('#sync-text').css('font-size'));
         console.log(fontSize);
-        if (fontSize > 45) {
-            fontSize -= 1;
+        if (fontSize < 72) {
+            fontSize += 1;
             $('#font-size').val(fontSize);
             $('#font-size-value').text(fontSize + 'px');
             $('#sync-text').css('font-size', fontSize + 'px');
             updateAndSave({ 'fontSize': fontSize });
         }
-    }
-    else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        // increase font size
+    } else if (e.key === 'ArrowLeft') {
+        // Decrease font size
         let fontSize = parseInt($('#sync-text').css('font-size'));
         console.log(fontSize);
-        if (fontSize < 72) {
-            fontSize += 1;
+        if (fontSize > 45) {
+            fontSize -= 1;
             $('#font-size').val(fontSize);
             $('#font-size-value').text(fontSize + 'px');
             $('#sync-text').css('font-size', fontSize + 'px');
@@ -262,7 +256,7 @@ window.addEventListener('wheel', (e) => {
     // Increase/decrease velocity with the mouse wheel while holding alt
     if (e.altKey) {
         if (e.deltaY > 0) {
-            // decrease velocity
+            // Decrease velocity
             let velocity = getVelocity();
             if (velocity > 0.1) {
                 velocity -= 0.1;
@@ -271,7 +265,7 @@ window.addEventListener('wheel', (e) => {
                 updateAndSave({ 'velocity': getVelocity() });
             }
         } else {
-            // increase velocity
+            // Increase velocity
             let velocity = getVelocity();
             if (velocity < 1) {
                 velocity += 0.1;
@@ -280,10 +274,10 @@ window.addEventListener('wheel', (e) => {
                 updateAndSave({ 'velocity': getVelocity() });
             }
         }
-        // Increase/decrease font size with the mouse wheel while holding shift
+    // Increase/decrease font size with the mouse wheel while holding shift
     } else if (e.shiftKey) {
         if (e.deltaY > 0) {
-            // decrease font size
+            // Decrease font size
             let fontSize = parseInt($('#sync-text').css('font-size'));
             if (fontSize > 45) {
                 fontSize -= 1;
@@ -294,7 +288,7 @@ window.addEventListener('wheel', (e) => {
                 updateAndSave({ 'fontSize': fontSize });
             }
         } else {
-            // increase font size
+            // Increase font size
             let fontSize = parseInt($('#sync-text').css('font-size'));
             if (fontSize < 72) {
                 fontSize += 1;
@@ -315,11 +309,6 @@ document.querySelector('#sync-text').addEventListener('wheel', (e) => {
     }
 });
 
-// Calculate velocity
-function getVelocity() {
-    return parseFloat($('#velocity').val()) / 10;
-}
-
 // Toggle the automatic scroll based on velocity and font size
 function toggleAutoScroll() {
     if (isPlaying) {
@@ -336,17 +325,22 @@ function toggleAutoScroll() {
     }
 }
 
+// Calculate velocity
+function getVelocity() {
+    return parseFloat($('#velocity').val()) / 10;
+}
+
 // Save the state of the app to the server
 function updateAndSave(properties) {
     socket.emit('properties_updated', { 'room_id': room_id, ...properties });
     const state = {
-        fontSize: $('#font-size').val(),
-        velocity: getVelocity(),
-        isPlaying: isPlaying,
-        text: $('#sync-text').html(),
-        scrollTop: $('#sync-text').scrollTop(),
         room_id: room_id,
-        room_name: $('#room-name').text().trim()
+        text: $('#sync-text').html(),
+        room_name: $('#room-name').text().trim(),
+        isPlaying: isPlaying,
+        scrollTop: $('#sync-text').scrollTop(),
+        velocity: getVelocity(),
+        fontSize: $('#font-size').val(),
     };
 
     $.ajax({
@@ -372,28 +366,28 @@ function loadState() {
         success: function (state) {
             if (state) {
                 $('#sync-text').html(state.text || '\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
-                $('#sync-text').css('font-size', (state.fontSize || 45) + 'px');
-                $('#font-size-value').text((state.fontSize || 45) + 'px');
-                $('#font-size').val(state.fontSize || 45);
-                $('#velocity').val(((state.velocity || 0.1) * 10));
-                $('#velocity-value').text((state.velocity || 0.1) * 100 + '%');
-                $('#sync-text').scrollTop(state.scrollTop + 200 || 0); // + 200 is needed?
+                $('#room-name').text(state.room_name || 'Unnamed Room');
+                document.title = state.room_name + " - R's prompter" || 'Unnamed Room' + " - R's prompter";
                 isPlaying = (typeof state.isPlaying !== 'undefined') ? state.isPlaying : false;
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
                 toggleAutoScroll();
-                $('#room-name').text(state.room_name || 'Unnamed Room');
-                document.title = state.room_name + " - R's prompter" || 'Unnamed Room' + " - R's prompter";
+                $('#sync-text').scrollTop(state.scrollTop + 200 || 0); // + 200 is needed?
+                $('#velocity').val(((state.velocity || 0.1) * 10));
+                $('#velocity-value').text((state.velocity || 0.1) * 100 + '%');
+                $('#sync-text').css('font-size', (state.fontSize || 45) + 'px');
+                $('#font-size-value').text((state.fontSize || 45) + 'px');
+                $('#font-size').val(state.fontSize || 45);
             } else {
                 $('#sync-text').html('\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
+                $('#room-name').text('Unnamed Room');
+                isPlaying = false;
+                $('#play-pause').html('<i class="fas fa-play"></i>');
+                $('#sync-text').scrollTop(0);
+                $('#velocity').val(1); // 0.3 * 10
+                $('#velocity-value').text(10 + '%');
                 $('#sync-text').css('font-size', '45px');
                 $('#font-size-value').text('45px');
                 $('#font-size').val(45);
-                $('#velocity').val(1); // 0.3 * 10
-                $('#velocity-value').text(10 + '%');
-                $('#sync-text').scrollTop(0);
-                isPlaying = false;
-                $('#play-pause').html('<i class="fas fa-play"></i>');
-                $('#room-name').text('Unnamed Room');
             }
         },
         error: function (error) {
@@ -404,22 +398,11 @@ function loadState() {
 
 // Load the state of the app from local storage
 function loadLocalStorage() {
-    const savedTextColor = localStorage.getItem('textColor');
-    const savedBgColor = localStorage.getItem('bgColor');
     const savedTextAlign = localStorage.getItem('textAlign');
     const savedTextOrientation = localStorage.getItem('textOrientation');
     const savedSyncTextWidth = localStorage.getItem('syncTextWidth');
-
-    // if (savedTextColor) {
-    //     $('#text-color').val(savedTextColor);
-    //     $('#sync-text').css('color', savedTextColor);
-    //     $('body').css('color', savedTextColor);
-    // }
-
-    if (savedBgColor) {
-        $('#bg-color').val(savedBgColor);
-        $('body').css('background-color', savedBgColor);
-    }
+    // const savedTextColor = localStorage.getItem('textColor');
+    const savedBgColor = localStorage.getItem('bgColor');
 
     if (savedTextAlign) {
         $('#sync-text').css('text-align', savedTextAlign);
@@ -434,7 +417,7 @@ function loadLocalStorage() {
     if (savedSyncTextWidth) {
         const syncText = $('#sync-text');
         syncText.width(savedSyncTextWidth + '%');
-        const arrowPosition = ((100 - parseInt(savedSyncTextWidth)) / 2) - 5;
+        const arrowPosition = ((100 - parseInt(savedSyncTextWidth)) / 2) - 6;
 
         // Change the arrow positions
         $('.arrow-left').css('right', arrowPosition + '%');
@@ -442,11 +425,22 @@ function loadLocalStorage() {
         $('#sync-text-width').val(savedSyncTextWidth);
         $('#sync-text-width-value').text(savedSyncTextWidth + '%');
     }
+
+    // if (savedTextColor) {
+    //     $('#text-color').val(savedTextColor);
+    //     $('#sync-text').css('color', savedTextColor);
+    //     $('body').css('color', savedTextColor);
+    // }
+
+    if (savedBgColor) {
+        $('#bg-color').val(savedBgColor);
+        $('body').css('background-color', savedBgColor);
+    }
 }
 
 // Initialize font size, velocity and the sync text width labels
-$('#font-size-value').text($('#font-size').val() + 'px');
 $('#velocity-value').text(getVelocity() * 100 + '%');
+$('#font-size-value').text($('#font-size').val() + 'px');
 $('#sync-text-width-value').text($('#sync-text-width').val() + '%');
 
 // Initialize settings
