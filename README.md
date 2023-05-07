@@ -7,23 +7,25 @@
 * [X] Block the manual scroll when the text is playing
 * [X] Is the text color picker still needed? > Keep the code in comment for now.
 * [X] Rename the update_text and text_updated events to something more global like "properties"
-* [ ] Merge the local velocity and font sizes changes with the server changes function
-* [ ] Merge all the socket.emit() calls into one function
-* [ ] Merge saveState and socket.emit() calls into one function
-* [ ] Check if I can delete the isPlaying variable in the socket.emit() calls where it's not needed
-* [ ] Delete font size, velocity changes where not needed
+* [X] Check if I can delete the isPlaying variable in the socket.emit() calls where it's not needed
+* [X] Delete font size, velocity changes where not needed
+* [X] Merge the local velocity and font sizes changes with the server changes function
+* [X] Merge all the socket.emit() calls into one function
+* [X] Merge saveState and socket.emit() calls into one function
 * [ ] Change the functions order to match the controls order
 * [ ] Refactor the code
 
 ### Planned Features
-* [ ] Portrait mobile view need to only shows the controls and not the text
+* [ ] Move the arrows up and down
+* [ ] Save and import properties with a JSON file
 
 ### Implemented Features
 * [X] Named room system
 * [X] Two way synchronization (text, text formatting, velocity, font size, scroll position, play/pause state)
 * [X] Automatic text scrolling
 * [X] Local settings (text alignment, text reverses, text width, text color, background color, reset button)
-* [X] Text formatting (bold, italic, underline, text color, etc.)
+* [X] Text formatting (bold, italic, underline, strikethrough, text color, etc.)
+* [X] Remote in portrait mobile view
 > Need to add other already implemented features
 
 ### Known Issues
@@ -32,3 +34,5 @@
 * [X] Fix the font size shortcuts that only up or down the font size by 1px
 * [X] Fix the play/pause button and shortcut state issue
 * [X] Fix the text color picker in the text editor that only work if we press Enter or click on the same text again
+* [X] Fix the wheel event that is working with the manual scroll when the text is playing
+* [ ] Fix the scroll position going to the bottom of the text when formatting the text

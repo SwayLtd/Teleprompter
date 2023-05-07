@@ -43,40 +43,37 @@ socket.on('update_properties', data => {
 });
 
 $('#room-name').on('input', () => {
-    socket.emit('properties_updated', {
-        'room_id': room_id,
-        'isPlaying': isPlaying,
-        'room_name': $('#room-name').text().trim()
-    });
+    updateAndSave({ 'room_name': $('#room-name').text().trim() });
     document.title = $('#room-name').text().trim() + " - R's prompter";
-    saveState();
 });
 
 $('#sync-text').on('input', () => {
-    socket.emit('properties_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'isPlaying': isPlaying });
-    saveState();
+    updateAndSave({ 'text': $('#sync-text').html() });
 });
 
-// When the 'Save' button is clicked, send the updated text and settings to the server
-$('#sync-text').click(() => {
-    let fontSize = parseInt($('#sync-text').css('font-size'));
-    socket.emit('properties_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'fontSize': fontSize, 'velocity': getVelocity(), scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, room_name: $('#room-name').text().trim() });
-    saveState();
-});
-
-// When the font size or velocity sliders are changed, send the updated settings to the server
-$('#font-size, #velocity').on('input', () => {
+// Update the font size label when the font size slider is changed
+$('#font-size').on('input', () => {
     let fontSize = $('#font-size').val();
-    socket.emit('properties_updated', { 'room_id': room_id, 'fontSize': fontSize, 'velocity': getVelocity(), 'isPlaying': isPlaying });
-    saveState();
+    $('#font-size-value').text(fontSize + 'px');
+    $('#sync-text').css('font-size', fontSize + 'px');
+    updateAndSave({ 'fontSize': fontSize });
+});
+
+// Update the velocity label when the velocity slider is changed
+$('#velocity').on('input', () => {
+    $('#velocity-value').text(getVelocity() * 100 + '%');
+    updateAndSave({ 'velocity': getVelocity() });
 });
 
 // When the play/pause button is clicked, toggle the auto-scrolling state and send the updated settings to the server
 $('#play-pause').on('click', () => {
     isPlaying = !isPlaying;
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-    socket.emit('properties_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
-    saveState();
+    if (window.matchMedia("(max-width: 426px)")) {
+        updateAndSave({ 'isPlaying': isPlaying, 'velocity': getVelocity() });
+    } else {
+        updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
+    }
     toggleAutoScroll();
 });
 
@@ -176,18 +173,6 @@ $('#reset').click(() => {
     localStorage.clear();
 });
 
-// Update the font size label when the font size slider is changed
-$('#font-size').on('input', () => {
-    let fontSize = $('#font-size').val();
-    $('#font-size-value').text(fontSize + 'px');
-    $('#sync-text').css('font-size', fontSize + 'px');
-});
-
-// Update the velocity label when the velocity slider is changed
-$('#velocity').on('input', () => {
-    $('#velocity-value').text(getVelocity() * 100 + '%');
-});
-
 // Change the sync text with and update the arrows position
 $('#sync-text-width').on('input', function () {
     const syncText = $('#sync-text');
@@ -210,20 +195,19 @@ window.addEventListener('keydown', function (e) {
         return;
     }
 
-    if ((e.key === e.ctrlKey && e.key === 's') || (e.key === e.ctrlKey && e.key === 'S')) {
+    // condition with ctrlKey and s in lowercase and uppercase
+    if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
         // Save state
         e.preventDefault()
         let fontSize = parseInt($('#sync-text').css('font-size'));
-        socket.emit('properties_updated', { 'room_id': room_id, 'text': $('#sync-text').html(), 'fontSize': fontSize, 'velocity': getVelocity(), scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, room_name: $('#room-name').text().trim() });
-        saveState();
+        updateAndSave({ fontSize: fontSize, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity(), room_name: $('#room-name').text().trim() });
     } else if (e.key === ' ' || e.key === 'p' || e.key === 'P') {
         // Toggle play/pause
         e.preventDefault()
         isPlaying = !isPlaying;
         $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-        socket.emit('properties_updated', { 'room_id': room_id, scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
+        updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
         toggleAutoScroll();
-        saveState();
     } else if (e.key === 'ArrowUp') {
         // Increase velocity
         e.preventDefault()
@@ -232,8 +216,7 @@ window.addEventListener('keydown', function (e) {
             velocity += 0.1;
             $('#velocity').val(velocity * 10);
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
-            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
-            saveState();
+            updateAndSave({ 'velocity': getVelocity() });
         }
     } else if (e.key === 'ArrowDown') {
         // Decrease velocity
@@ -243,8 +226,7 @@ window.addEventListener('keydown', function (e) {
             velocity -= 0.1;
             $('#velocity').val(velocity * 10);
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
-            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
-            saveState();
+            updateAndSave({ 'velocity': getVelocity() });
         }
     }
     else if (e.key === 'ArrowLeft') {
@@ -257,8 +239,7 @@ window.addEventListener('keydown', function (e) {
             $('#font-size').val(fontSize);
             $('#font-size-value').text(fontSize + 'px');
             $('#sync-text').css('font-size', fontSize + 'px');
-            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
-            saveState();
+            updateAndSave({ 'fontSize': fontSize });
         }
     }
     else if (e.key === 'ArrowRight') {
@@ -271,8 +252,7 @@ window.addEventListener('keydown', function (e) {
             $('#font-size').val(fontSize);
             $('#font-size-value').text(fontSize + 'px');
             $('#sync-text').css('font-size', fontSize + 'px');
-            socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
-            saveState();
+            updateAndSave({ 'fontSize': fontSize });
         }
     }
 });
@@ -288,8 +268,7 @@ window.addEventListener('wheel', (e) => {
                 velocity -= 0.1;
                 $('#velocity').val(velocity * 10);
                 $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
-                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
-                saveState();
+                updateAndSave({ 'velocity': getVelocity() });
             }
         } else {
             // increase velocity
@@ -298,8 +277,7 @@ window.addEventListener('wheel', (e) => {
                 velocity += 0.1;
                 $('#velocity').val(velocity * 10);
                 $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
-                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'velocity': getVelocity() });
-                saveState();
+                updateAndSave({ 'velocity': getVelocity() });
             }
         }
         // Increase/decrease font size with the mouse wheel while holding shift
@@ -313,8 +291,7 @@ window.addEventListener('wheel', (e) => {
                 $('#font-size').val(fontSize);
                 $('#font-size-value').text(fontSize + 'px');
                 $('#sync-text').css('font-size', fontSize + 'px');
-                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
-                saveState();
+                updateAndSave({ 'fontSize': fontSize });
             }
         } else {
             // increase font size
@@ -325,23 +302,18 @@ window.addEventListener('wheel', (e) => {
                 $('#font-size').val(fontSize);
                 $('#font-size-value').text(fontSize + 'px');
                 $('#sync-text').css('font-size', fontSize + 'px');
-                socket.emit('properties_updated', { 'room_id': room_id, 'isPlaying': isPlaying, 'fontSize': fontSize });
-                saveState();
+                updateAndSave({ 'fontSize': fontSize });
             }
         }
     }
 });
 
 // Prevent scrolling when playing
-document.querySelector('#sync-text').addEventListener('wheel', preventScroll, { passive: false });
-function preventScroll(e) {
+document.querySelector('#sync-text').addEventListener('wheel', (e) => {
     if (isPlaying) {
         e.preventDefault();
-        e.stopPropagation(); // TO DO : Is this necessary?
     }
-
-    return false;
-}
+});
 
 // Calculate velocity
 function getVelocity() {
@@ -365,7 +337,8 @@ function toggleAutoScroll() {
 }
 
 // Save the state of the app to the server
-function saveState() {
+function updateAndSave(properties) {
+    socket.emit('properties_updated', { 'room_id': room_id, ...properties });
     const state = {
         fontSize: $('#font-size').val(),
         velocity: getVelocity(),
@@ -471,7 +444,7 @@ function loadLocalStorage() {
     }
 }
 
-// Initialize font size and velocity labels
+// Initialize font size, velocity and the sync text width labels
 $('#font-size-value').text($('#font-size').val() + 'px');
 $('#velocity-value').text(getVelocity() * 100 + '%');
 $('#sync-text-width-value').text($('#sync-text-width').val() + '%');

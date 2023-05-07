@@ -32,7 +32,7 @@
                             class="fas fa-arrows-alt-v"></i></button>
                     <button id="invert-h" class="btn" title="Revert text horizontally"><i
                             class="fas fa-arrows-alt-h"></i></button>
-                    <button id="sync" class="btn" title="Sync properties"><i class="fas fa-sync-alt"></i></button>
+                    <button id="sync" class="btn" title="Force properties sync"><i class="fas fa-sync-alt"></i></button>
                     <button id="reset" class="btn" title="Reset local settings"><i class="fas fa-undo"></i></button>
                 </div>
                 <div>
@@ -40,8 +40,18 @@
                     <button class="btn" onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
                     <button class="btn" onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
                     <button class="btn" onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
+                    <button class="btn" onclick="formatText('strikethrough')"><i
+                            class="fas fa-strikethrough"></i></button>
+                    <!-- <button class="btn" onclick="formatText('insertOrderedList')"><i
+                            class="fas fa-list-ol"></i></button>
+                    <button class="btn" onclick="formatText('insertUnorderedList')"><i
+                            class="fas fa-list-ul"></i></button>
+                    <button class="btn" onclick="formatText('indent')"><i class="fas fa-indent"></i></button>
+                    <button class="btn" onclick="formatText('outdent')"><i class="fas fa-outdent"></i></button>-->
+
                     <button class="btn" onclick="formatText('foreColor')"><i class="fas fa-font"></i></button>
                     <input type="color" id="colorPicker" oninput="changeColor()" style="display:none">
+                    <button class="btn" onclick="formatText('removeFormat')"><i class="fas fa-eraser"></i></button>
                 </div>
             </div>
             <div>
@@ -53,12 +63,12 @@
                     Velocity: <span id="velocity-value"></span>
                     <input id="velocity" type="range" min="1" max="10" value="1">
                 </div>
-                <div>
+                <div id="text-width">
                     Text width: <span id="sync-text-width-value"></span>
                     <input id="sync-text-width" type="range" min="45" max="90" value="90">
                 </div>
             </div>
-            <div>
+            <div id="general-colors">
                 <!-- <div>
                     <input id="text-color" type="color" value="#61dafb"> Text color
                 </div> -->
