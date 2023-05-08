@@ -1,5 +1,5 @@
 // Establish a connection with the server
-const socket = io.connect('http://' + document.domain + ':' + location.port);
+const socket = io.connect('https://' + document.domain + ':' + location.port);
 // Get the room_id from the URL (assuming it's in the format /room/<room_id>)
 const room_id = window.location.pathname.split('/')[2];
 
@@ -146,7 +146,7 @@ function changeColor() {
 
 // Update the velocity label when the velocity slider is changed
 $('#velocity').on('input', () => {
-    $('#velocity-value').text(getVelocity() * 100 + '%');
+    $('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
     updateAndSave({ 'velocity': getVelocity() });
 });
 
@@ -212,7 +212,7 @@ window.addEventListener('keydown', function (e) {
         // Increase velocity
         let velocity = getVelocity();
         if (velocity < 1) {
-            velocity += 0.1;
+            velocity += 0.05;
             $('#velocity').val(velocity * 10);
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
             updateAndSave({ 'velocity': getVelocity() });
@@ -221,7 +221,7 @@ window.addEventListener('keydown', function (e) {
         // Decrease velocity
         let velocity = getVelocity();
         if (velocity > 0.1) {
-            velocity -= 0.1;
+            velocity -= 0.05;
             $('#velocity').val(velocity * 10);
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
             updateAndSave({ 'velocity': getVelocity() });
@@ -259,7 +259,7 @@ window.addEventListener('wheel', (e) => {
             // Decrease velocity
             let velocity = getVelocity();
             if (velocity > 0.1) {
-                velocity -= 0.1;
+                velocity -= 0.05;
                 $('#velocity').val(velocity * 10);
                 $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
                 updateAndSave({ 'velocity': getVelocity() });
@@ -268,7 +268,7 @@ window.addEventListener('wheel', (e) => {
             // Increase velocity
             let velocity = getVelocity();
             if (velocity < 1) {
-                velocity += 0.1;
+                velocity += 0.05;
                 $('#velocity').val(velocity * 10);
                 $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
                 updateAndSave({ 'velocity': getVelocity() });

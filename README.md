@@ -15,7 +15,9 @@
 * [X] Change the functions order to match the controls order (roomID, syncText, roomName, isPlaying, scrollTop, textAlignment, textOrientation, velocity, fontSize, textColor, bgColor)
 * [X] Check if the e.preventDefault() can be called at the beginning of the function instead of in every if statement
 * [X] Refactor the code
+* [X] 2 times more velocity steps
 * [ ] Moving all isPlaying changes to toogleAutoScroll()
+* [ ] Automatically pause the text scrolling when it reach the end of the scroll
 
 ### Planned Features
 * [ ] Move the arrows up and down
