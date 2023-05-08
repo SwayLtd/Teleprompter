@@ -1,5 +1,6 @@
 // Establish a connection with the server
-const socket = io.connect('https://' + document.domain + ':' + location.port);
+const protocol = location.protocol == 'https:' ? 'https' : 'http';
+const socket = io.connect(protocol + '://' + document.domain + ':' + location.port);
 // Get the room_id from the URL (assuming it's in the format /room/<room_id>)
 const room_id = window.location.pathname.split('/')[2];
 
