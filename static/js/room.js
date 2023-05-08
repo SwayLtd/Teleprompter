@@ -33,7 +33,7 @@ socket.on('update_properties', data => {
         }
         if (data['velocity'] !== getVelocity() && data['velocity'] !== undefined) {
             $('#velocity').val(data['velocity'] * 10);
-            $('#velocity-value').text(data['velocity'] * 100 + '%');
+            $('#velocity-value').text((data['velocity'] * 100).toFixed(0) + '%');
         }
         if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
             $('#sync-text').css('font-size', data['fontSize'] + 'px');
@@ -374,7 +374,7 @@ function loadState() {
                 toggleAutoScroll();
                 $('#sync-text').scrollTop(state.scrollTop + 200 || 0); // + 200 is needed?
                 $('#velocity').val(((state.velocity || 0.1) * 10));
-                $('#velocity-value').text((state.velocity || 0.1) * 100 + '%');
+                $('#velocity-value').text(((state.velocity || 0.1) * 100).toFixed(0) + '%');
                 $('#sync-text').css('font-size', (state.fontSize || 45) + 'px');
                 $('#font-size-value').text((state.fontSize || 45) + 'px');
                 $('#font-size').val(state.fontSize || 45);
@@ -440,7 +440,7 @@ function loadLocalStorage() {
 }
 
 // Initialize font size, velocity and the sync text width labels
-$('#velocity-value').text(getVelocity() * 100 + '%');
+$('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
 $('#font-size-value').text($('#font-size').val() + 'px');
 $('#sync-text-width-value').text($('#sync-text-width').val() + '%');
 

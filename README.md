@@ -39,5 +39,6 @@
 * [X] Fix the play/pause button and shortcut state issue
 * [X] Fix the text color picker in the text editor that only work if we press Enter or click on the same text again
 * [X] Fix the wheel event that is working with the manual scroll when the text is playing
+* [X] Fix the velocity value issue caused by floating-point arithmetic inaccuracies in JavaScript
 * [ ] Fix the scroll position going to the bottom of the text when formatting the text
 * [ ] Fix the ability to format the room name text
