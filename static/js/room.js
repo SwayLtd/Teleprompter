@@ -368,7 +368,7 @@ function updateAndSave(properties) {
         contentType: 'application/json',
         data: JSON.stringify(state),
         success: function (response) {
-            // console.log('State saved successfully:', response);
+            console.log('State saved successfully:', response);
         },
         error: function (error) {
             console.error('Error saving state:', error);

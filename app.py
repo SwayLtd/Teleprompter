@@ -70,7 +70,7 @@ def load_state():
 @socketio.on('properties_updated')
 def handle_properties_update(data):
     room_id = data['room_id']
-    room_state[room_id] = data
+    room_state[room_id].update(data)
     emit('update_properties', data, room=room_id, include_self=False)
 
 # Socket event when a user requests the initial state of a room
