@@ -53,9 +53,6 @@ def room_not_found():
 def save_state():
     state_data = request.get_json()
     room_id = state_data['room_id']
-    room_name = state_data.get('room_name', '').strip()  # Get the room_name if it exists in state_data
-    if room_name:
-        room_state[room_id]['room_name'] = room_name  # Update the room_name in room_state
     room_state[room_id] = state_data
     return jsonify({'result': 'success'})
 
@@ -73,10 +70,6 @@ def load_state():
 @socketio.on('properties_updated')
 def handle_properties_update(data):
     room_id = data['room_id']
-    room_name = data.get('room_name', None)  # Get the room_name if it exists in data
-    if room_name is not None:
-        room_name = room_name.strip()
-        data['room_name'] = room_name
     room_state[room_id] = data
     emit('update_properties', data, room=room_id, include_self=False)
 

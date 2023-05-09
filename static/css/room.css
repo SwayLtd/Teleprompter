@@ -29,7 +29,7 @@ body {
 .prompter-text {
     position: absolute;
     white-space: pre-wrap;
-    font-size: 45px;
+    font-size: 72px;
     margin: 0 auto;
     top: 3%;
     left: 5%;
@@ -94,13 +94,13 @@ body {
 }
 
 .arrow-left {
-    top: 45%;
+    top: 72%;
     right: -10px;
     rotate: 180deg;
 }
 
 .arrow-right {
-    top: 45%;
+    top: 72%;
     left: -10px;
 }
 
