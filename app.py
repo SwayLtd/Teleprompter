@@ -1,11 +1,18 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import random, string
 
-# Initialize Flask app and SocketIO
+# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bewr_prompter'
+
+# Initialize SocketIO
 socketio = SocketIO(app)
+
+# Initialize the limiter
+limiter = Limiter(app=app, key_func=get_remote_address)
 
 # A dictionary to store the state data
 room_state = {}
@@ -22,6 +29,7 @@ def index():
 
 # Route to create a new room
 @app.route('/create_room', methods=['POST'])
+@limiter.limit("10/minute")
 def create_room():
     room_name = request.form.get('room_name', '').strip()
     room_id = generate_random_id()
@@ -30,6 +38,7 @@ def create_room():
 
 # Route to join a specific room
 @app.route('/r/<room_id>')
+@limiter.limit("100/minute")
 def room(room_id):
     if room_id not in room_state:
         return redirect(url_for('room_not_found'))
@@ -46,19 +55,13 @@ def on_join(data):
 
 # Route for the 404 page
 @app.route('/notfound')
+@limiter.limit("100/minute")
 def room_not_found():
     return render_template('errors/404.html'), 404
 
-@app.route('/save_state', methods=['POST'])
-def save_state():
-    state_data = request.get_json()
-    room_id = state_data['room_id']
-    room_state[room_id] = state_data
-    return jsonify({'result': 'success'})
-
-
 # Route to load the state of a room
 @app.route('/load_state', methods=['GET'])
+@limiter.limit("100/minute")
 def load_state():
     room_id = request.args.get('room_id')
     if room_id in room_state:
@@ -70,15 +73,11 @@ def load_state():
 @socketio.on('properties_updated')
 def handle_properties_update(data):
     room_id = data['room_id']
-    room_state[room_id].update(data)
-    emit('update_properties', data, room=room_id, include_self=False)
-
-# Socket event when a user requests the initial state of a room
-@socketio.on('request_initial_state')
-def handle_initial_state(data):
-    room_id = data['room_id']
     if room_id in room_state:
-        emit('update_properties', room_state[room_id])
+        room_state[room_id].update(data)  # Update the existing room state with the new properties
+    else:
+        room_state[room_id] = data  # Create a new room state if it doesn't exist
+    emit('update_properties', data, room=room_id, include_self=False)
 
 # Run the Flask app
 if __name__ == '__main__':

@@ -134,9 +134,9 @@ body {
         left: 0;
     }
 
-    #sync-text, .btn,
+    #sync-text,
+    .btn,
     .arrow,
-    #text-width,
     #general-colors {
         display: none;
     }
@@ -152,7 +152,8 @@ body {
         margin: 10% 0;
     }
 
-    #play-pause, #sync {
+    #play-pause,
+    #sync {
         display: block;
     }
 
@@ -164,23 +165,23 @@ body {
         min-width: 100%;
     }
 
-    .controls > div > div {
+    .controls>div>div {
         font-size: 25px;
         align-items: center;
         justify-content: center;
     }
 
     /* Reorder elements */
-    .controls > div:nth-child(1) {
+    .controls>div:nth-child(1) {
         order: 2;
     }
-    
-    .controls > div:nth-child(2) {
+
+    .controls>div:nth-child(2) {
         order: 1;
     }
 
     /* Reorder buttons */
-    .controls > div:nth-child(1) > div:nth-child(1) {
+    .controls>div:nth-child(1)>div:nth-child(1) {
         display: flex;
         flex-direction: column;
     }

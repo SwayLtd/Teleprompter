@@ -138,8 +138,6 @@ $('#reset').click(() => {
     $('#sync-text').css('transform', 'scaleX(1) scaleY(1)');
     $('#sync-text').css('text-align', 'center');
     $('#toggle-align i').attr('class', 'fas fa-align-center');
-    // text-color to #61dafb and background-color to #282c34
-    // $('#text-color').val('#61dafb');
     $('#bg-color').val('#282c34');
     $('#sync-text').css('color', '#61dafb');
     $('body').css('color', '#61dafb');
@@ -149,14 +147,21 @@ $('#reset').click(() => {
     localStorage.clear();
 });
 
-// Show the color picker when the "Text Color" button is clicked
 function formatText(command) {
+    // Save current scroll position
+    var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
     if (command === 'foreColor') {
         document.getElementById('colorPicker').click();
     } else {
         document.execCommand(command, false, null);
     }
+
+    // Restore scroll position
+    document.documentElement.scrollTop = document.body.scrollTop = scrollTop;
 }
+
+
 
 // Change the color inside the text editor
 function changeColor() {
@@ -194,14 +199,6 @@ $('#text-width').on('input', function () {
 
     updateAndSave({ 'textWidth': textWidth });
 });
-
-// When the text color picker is changed, update the text color in the UI and save it to local storage
-// $('#text-color').on('input', () => {
-//     const textColor = $('#text-color').val();
-//     $('body').css('color', textColor);
-//     $('#sync-text').css('color', textColor);
-//     localStorage.setItem('textColor', textColor);
-// });
 
 // When the background color picker is changed, update the background color in the UI and save it to local storage
 $('#bg-color').on('input', () => {
@@ -351,29 +348,6 @@ function getVelocity() {
 // Save the state of the app to the server
 function updateAndSave(properties) {
     socket.emit('properties_updated', { 'room_id': room_id, ...properties });
-    const state = {
-        room_id: room_id,
-        text: $('#sync-text').html(),
-        room_name: $('#room-name').text().trim(),
-        isPlaying: isPlaying,
-        scrollTop: $('#sync-text').scrollTop(),
-        velocity: getVelocity(),
-        fontSize: $('#font-size').val(),
-        textWidth: $('#text-width').val(),
-    };
-
-    $.ajax({
-        url: '/save_state',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify(state),
-        success: function (response) {
-            console.log('State saved successfully:', response);
-        },
-        error: function (error) {
-            console.error('Error saving state:', error);
-        }
-    });
 }
 
 // Load the state of the app from the server
@@ -449,24 +423,11 @@ function loadLocalStorage() {
         $('#sync-text').css('transform', savedTextOrientation);
     }
 
-    // if (savedTextColor) {
-    //     $('#text-color').val(savedTextColor);
-    //     $('#sync-text').css('color', savedTextColor);
-    //     $('body').css('color', savedTextColor);
-    // }
-
     if (savedBgColor) {
         $('#bg-color').val(savedBgColor);
         $('body').css('background-color', savedBgColor);
     }
 }
-
-// Initialize font size, velocity and the sync text width labels
-/*
-$('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
-$('#font-size-value').text($('#font-size').val() + 'px');
-$('#text-width-value').text($('#text-width').val() + '%');
-*/
 
 // Initialize settings
 loadState(); // Load state from the server

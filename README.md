@@ -28,6 +28,7 @@
 * [ ] Move the arrows up and down
 * [ ] Save and import properties with a JSON file or database
 * [ ] Scroll pad for mobile
+* [ ] Implement Redis (or other) to store rate limiting data
 
 ### Implemented Features
 * [X] Named room system
@@ -36,6 +37,7 @@
 * [X] Local settings (text alignment, text reverses, text width, text color, background color, reset button)
 * [X] Text formatting (bold, italic, underline, strikethrough, text color, etc.)
 * [X] Remote in portrait mobile view
+* [X] Rate limiting
 > Need to add other already implemented features
 
 ### Known Issues
@@ -48,5 +50,6 @@
 * [X] Fix the velocity value issue caused by floating-point arithmetic inaccuracies in JavaScript
 * [X] Fix the synchronization  issue when all the information are not stored on the server because only the last one is stored without all properties
 * [X] Fix the sync button that doesn't do anything
-* [ ] Fix the scroll position going to the bottom of the text when formatting the text
-* [ ] Fix the ability to format the room name text
+* [X] Fix the ability to format the room name text
+* [X] Fix the scroll position going to the bottom of the text when formatting the text
+* [ ] Fix the room name editing that is not working on mobile
