@@ -40,15 +40,20 @@ socket.on('update_properties', data => {
             $('#font-size').val(data['fontSize']);
             $('#font-size-value').text(data['fontSize'] + 'px');
         }
-        if (data['textWidth'] !== parseInt($('#sync-text').css('width')) && data['textWidth'] !== undefined) {
+        if (data['textWidth'] !== parseInt($('#text-width').val()) && data['textWidth'] !== undefined) {
             $('#sync-text').css('width', data['textWidth'] + '%');
             $('#text-width').val(data['textWidth']);
             $('#text-width-value').text(data['textWidth'] + '%');
-
             // Change the arrow positions
-            const arrowPosition = ((100 - parseInt(data['textWidth'])) / 2) - 5;
-            $('.arrow-left').css('right', arrowPosition + '%');
-            $('.arrow-right').css('left', arrowPosition + '%');
+            const arrowWidthPosition = ((100 - parseInt(data['textWidth'])) / 2) - 5;
+            $('.arrow-left').css('right', arrowWidthPosition + '%');
+            $('.arrow-right').css('left', arrowWidthPosition + '%');
+        }
+        if (data['arrowTop'] !== parseInt($('arrows-top').val()) && data['arrowTop'] !== undefined) {
+            $('.arrow-left').css('top', data['arrowTop'] + '%');
+            $('.arrow-right').css('top', data['arrowTop'] + '%');
+            $('#arrows-top').val(data['arrowTop']);
+            $('#arrows-top-value').text(data['arrowTop'] + '%');
         }
     }
 });
@@ -130,7 +135,7 @@ $('#invert-h').click(() => {
 $('#sync').click(() => {
     // Save and sync state
     let fontSize = parseInt($('#sync-text').css('font-size'));
-    updateAndSave({ 'text': $('#sync-text').html(), room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#text-width').val() });
+    updateAndSave({ 'text': $('#sync-text').html(), room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#text-width').val(), 'arrowTop': $('#arrows-top').val() });
 });
 
 // Reset all local storage values to their defaults
@@ -144,6 +149,8 @@ $('#reset').click(() => {
     $('body').css('background-color', '#282c34');
     $('.arrow-left').css('right', '-10px');
     $('.arrow-right').css('left', '-10px');
+    $('.arrow-left').css('top', '45%');
+    $('.arrow-right').css('top', '45%');
     localStorage.clear();
 });
 
@@ -160,8 +167,6 @@ function formatText(command) {
     // Restore scroll position
     document.documentElement.scrollTop = document.body.scrollTop = scrollTop;
 }
-
-
 
 // Change the color inside the text editor
 function changeColor() {
@@ -184,7 +189,7 @@ $('#font-size').on('input', () => {
     updateAndSave({ 'fontSize': fontSize });
 });
 
-// Change the sync text with and update the arrows position
+// Change the text with, update the arrows position and sync the state
 $('#text-width').on('input', function () {
     let textWidth = $('#text-width').val();
 
@@ -193,11 +198,23 @@ $('#text-width').on('input', function () {
     $('#text-width-value').text(textWidth + '%');
 
     // Arrow position
-    const arrowPosition = ((100 - parseInt(textWidth)) / 2) - 5;
-    $('.arrow-left').css('right', arrowPosition + '%');
-    $('.arrow-right').css('left', arrowPosition + '%');
+    const arrowWidthPosition = ((100 - parseInt(textWidth)) / 2) - 5;
+    $('.arrow-left').css('right', arrowWidthPosition + '%');
+    $('.arrow-right').css('left', arrowWidthPosition + '%');
 
     updateAndSave({ 'textWidth': textWidth });
+});
+
+// Change the arrow height and sync the state
+$('#arrows-top').on('input', function () {
+    let arrowTop = $('#arrows-top').val();
+
+    $('#arrows-top-value').text(arrowTop + '%');
+    // Arrow position
+    $('.arrow-left').css('top', arrowTop + '%');
+    $('.arrow-right').css('top', arrowTop + '%');
+
+    updateAndSave({ 'arrowTop': arrowTop });
 });
 
 // When the background color picker is changed, update the background color in the UI and save it to local storage
@@ -226,7 +243,7 @@ window.addEventListener('keydown', function (e) {
     } else if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
         // Save and sync state
         let fontSize = parseInt($('#sync-text').css('font-size'));
-        updateAndSave({ 'text': $('#sync-text').html(), room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#sync-text').width() });
+        updateAndSave({ 'text': $('#sync-text').html(), room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#sync-text').width(), 'arrowTop': $('#arrows-top').val() });
     } else if (e.key === 'ArrowUp') {
         // Increase velocity
         let velocity = getVelocity();
@@ -374,11 +391,16 @@ function loadState() {
                 $('#sync-text').width((state.textWidth || 90) + '%');
                 $('#text-width').val(state.textWidth || 90);
                 $('#text-width-value').text((state.textWidth || 90) + '%');
+                // Arrows height position
+                $('#arrows-top').val(state.arrowTop || 45);
+                $('#arrows-top-value').text(state.arrowTop || 45 + '%');
                 // Arrow position
-                const arrowPosition = ((100 - parseInt(state.textWidth || 90)) / 2) - 5;
-                $('.arrow-left').css('right', arrowPosition + '%');
-                $('.arrow-right').css('left', arrowPosition + '%');
-
+                const arrowWidthPosition = ((100 - parseInt(state.textWidth || 90)) / 2) - 5;
+                const arrowTopPosition = (parseInt(state.arrowTop || 45));
+                $('.arrow-left').css('right', arrowWidthPosition + '%');
+                $('.arrow-right').css('left', arrowWidthPosition + '%');
+                $('.arrow-left').css('top', arrowTopPosition + '%');
+                $('.arrow-right').css('top', arrowTopPosition + '%');
             } else {
                 $('#sync-text').html('\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
                 $('#room-name').text('Unnamed Room');
@@ -394,10 +416,15 @@ function loadState() {
                 $('#sync-text').width('90%');
                 $('#text-width').val(90);
                 $('#text-width-value').text(('90%'));
+                // Arrows height
+                $('#arrows-top').val(45);
+                $('#arrows-top-value').text('45%');
                 // Arrow position
-                const arrowPosition = ((100 - 90) / 2) - 5;
-                $('.arrow-left').css('right', arrowPosition + '%');
-                $('.arrow-right').css('left', arrowPosition + '%');
+                const arrowWidthPosition = ((100 - 90) / 2) - 5;
+                $('.arrow-left').css('right', arrowWidthPosition + '%');
+                $('.arrow-right').css('left', arrowWidthPosition + '%');
+                $('.arrow-left').css('top', '45%');
+                $('.arrow-right').css('top', '45%');
             }
         },
         error: function (error) {

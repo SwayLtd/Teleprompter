@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/static/css/room.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.10.11/interact.min.js"></script>
 </head>
 
 <body>
@@ -63,20 +64,26 @@
                     Font size: <span id="font-size-value"></span>
                     <input id="font-size" type="range" min="45" max="96" value="72">
                 </div>
+            </div>
+            <div>
                 <div>
                     Text width: <span id="text-width-value"></span>
                     <input id="text-width" type="range" min="45" max="90" value="90">
                 </div>
+                <div>
+                    Arrows pos: <span id="arrows-top-value"></span>
+                    <input id="arrows-top" type="range" min="20" max="70" value="45">
+                </div>
             </div>
-            <div id="general-colors">
+            <div id="color-area">
                 <div>
                     <input id="bg-color" type="color" value="#282c34"> Background color
                 </div>
             </div>
         </div>
     </div>
-    <img class="arrow arrow-left" src="https://cdn-icons-png.flaticon.com/512/57/57043.png" alt="Arrow left" />
-    <img class="arrow arrow-right" src="https://cdn-icons-png.flaticon.com/512/57/57043.png" alt="Arrow right" />
+    <img id="arrow-left" class="arrow arrow-left" src="https://cdn-icons-png.flaticon.com/512/57/57043.png" alt="Arrow left" />
+    <img if="arrow-right" class="arrow arrow-right" src="https://cdn-icons-png.flaticon.com/512/57/57043.png" alt="Arrow right" />
 
     <script src="/static/js/room.js"></script>
 </body>

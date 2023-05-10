@@ -19,13 +19,14 @@
 * [X] Syncing the text editing scroll position
 * [X] Increase font size maximum (new default is 72px)
 * [X] Sync text width
+* [ ] Remove jQuery to use only vanilla JavaScript
 * [ ] Moving all isPlaying changes to toogleAutoScroll()
 * [ ] Automatically pause the text scrolling when it reach the end of the scroll
 * [ ] Limit the number of interface of the same room openend at the same time
 * [ ] Button to invert the arrow shortcuts and wheel scroll
 
 ### Planned Features
-* [ ] Move the arrows up and down
+* [X] Move the arrows up and down
 * [ ] Save and import properties with a JSON file or database
 * [ ] Scroll pad for mobile
 * [ ] Implement Redis (or other) to store rate limiting data
