@@ -30,6 +30,8 @@
 * [ ] Save and import properties with a JSON file or database
 * [ ] Scroll pad for mobile
 * [ ] Implement Redis (or other) to store rate limiting data
+* [ ] Reading timer
+* [ ] Better settings UI integration
 
 ### Implemented Features
 * [X] Named room system
