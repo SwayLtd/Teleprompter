@@ -21,7 +21,7 @@ socket.on('update_properties', data => {
         }
         if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
             $('#room-name').text(data['room_name']);
-            document.title = data['room_name'] + " - R's prompter";
+            document.title = data['room_name'] + " - Bewr Prompter";
         }
         if (data['isPlaying'] !== isPlaying && data['isPlaying'] !== undefined) {
             isPlaying = data['isPlaying'];
@@ -71,7 +71,7 @@ $('#sync-text').on('click', () => {
 // When the room name is changed, update the room name and send it to the server
 $('#room-name').on('input', () => {
     updateAndSave({ 'room_name': $('#room-name').text().trim() });
-    document.title = $('#room-name').text().trim() + " - R's prompter";
+    document.title = $('#room-name').text().trim() + " - Bewr Prompter";
 });
 
 // When the play/pause button is clicked, toggle the auto-scrolling state and send the updated settings to the server
@@ -377,7 +377,7 @@ function loadState() {
             if (state) {
                 $('#sync-text').html(state.text || '\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
                 $('#room-name').text(state.room_name || 'Unnamed Room');
-                document.title = state.room_name + " - R's prompter" || 'Unnamed Room' + " - R's prompter";
+                document.title = state.room_name + " - Bewr Prompter" || 'Unnamed Room' + " - Bewr Prompter";
                 isPlaying = (typeof state.isPlaying !== 'undefined') ? state.isPlaying : false;
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
                 toggleAutoScroll();
