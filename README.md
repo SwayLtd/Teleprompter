@@ -1,5 +1,5 @@
-# R's prompter
- R's prompter app synchronized over local network
+# Bewr Prompter
+ Bewr Prompter app synchronized over local network
 
 ## Roadmap
 ### TO DO
@@ -19,19 +19,21 @@
 * [X] Syncing the text editing scroll position
 * [X] Increase font size maximum (new default is 72px)
 * [X] Sync text width
+* [X] Move the arrows up and down
 * [ ] Remove jQuery to use only vanilla JavaScript
 * [ ] Moving all isPlaying changes to toogleAutoScroll()
 * [ ] Automatically pause the text scrolling when it reach the end of the scroll
-* [ ] Limit the number of interface of the same room openend at the same time
-* [ ] Button to invert the arrow shortcuts and wheel scroll
+* [ ] Limit the number of interface of the same room opened at the same time
+* [ ] Button to invert the arrow shortcuts and wheel scroll direction
+
 
 ### Planned Features
-* [X] Move the arrows up and down
-* [ ] Save and import properties with a JSON file or database
+* [X] PostgreSQL implementation
+* [ ] UI v2
 * [ ] Scroll pad for mobile
-* [ ] Implement Redis (or other) to store rate limiting data
+* [ ] Implement Redis to store rate limiting data and for caching to improve performances (don't forget Handle Cache Invalidation)
 * [ ] Reading timer
-* [ ] Better settings UI integration
+* [ ] Bluetooth remote implementation
 
 ### Implemented Features
 * [X] Named room system
