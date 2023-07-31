@@ -1,5 +1,5 @@
 # Bewr Prompter
- Bewr Prompter app synchronized over local network
+Bewr Teleprompter: A collaborative teleprompter tool designed for real-time, multi-device text synchronization. Ideal for teams in broadcast, stage, and studio production.
 
 ## Roadmap
 ### TO DO
@@ -34,6 +34,7 @@
 * [ ] Implement Redis to store rate limiting data and for caching to improve performances (don't forget Handle Cache Invalidation)
 * [ ] Reading timer
 * [ ] Bluetooth remote implementation
+* [ ] Integrated audio recorder (compatible with ASIO driver?)
 
 ### Implemented Features
 * [X] Named room system
