@@ -1,5 +1,5 @@
-# Bewr Prompter
-Bewr Teleprompter: A collaborative teleprompter tool designed for real-time, multi-device text synchronization. Ideal for teams in broadcast, stage, and studio production.
+# Sway  Prompter
+Sway Teleprompter: A collaborative teleprompter tool designed for real-time, multi-device text synchronization. Ideal for teams in broadcast, stage, and studio production.
 
 ## Roadmap
 ### TO DO
