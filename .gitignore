@@ -1,3 +1,29 @@
 /launcher.py
 /favicon.ico
 /favicon.png
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+env/
+.venv/
+
+# Environment variables
+.env
+
+# SQLite database
+teleprompter.db
+
+# VS Code settings
+.vscode/
+
+# Copilot config (optional, if you don't want to share)
+.copilot/
+
+# OS files
+.DS_Store
+Thumbs.db
