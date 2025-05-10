@@ -17,8 +17,10 @@
 </head>
 
 <body>
-    <div class="room-information">
-        <span id="room-name" contenteditable spellcheck="false"></span>
+    <div class="room-information"
+        style="display: flex; justify-content: center; align-items: center; position: relative; width: 100%;">
+        <span id="room-name" contenteditable spellcheck="false" style="text-align: center;"></span>
+        <span id="time-remaining" style="position: absolute; right: 24px; min-width:120px; text-align:right;"></span>
     </div>
     <div class="prompter">
         <pre id="sync-text" class="prompter-text" contenteditable spellcheck="false"></pre>
@@ -78,7 +80,7 @@
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
                         <label for="arrows-top" style="margin-bottom:0;">Arrows pos: <span
                                 id="arrows-top-value"></span></label>
-                        <input id="arrows-top" type="range" min="20" max="70" value="45" style="margin-top:0;">
+                        <input id="arrows-top" type="range" min="20" max="80" value="45" style="margin-top:0;">
                     </div>
                 </div>
             </div>

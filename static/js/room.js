@@ -7,6 +7,28 @@ const room_id = window.location.pathname.split('/')[2];
 let isPlaying = false;
 let autoScrollInterval;
 
+function updateTimeRemaining() {
+    const syncText = document.getElementById('sync-text');
+    const scrollTop = syncText.scrollTop;
+    const scrollHeight = syncText.scrollHeight;
+    const clientHeight = syncText.clientHeight;
+    const remaining = scrollHeight - clientHeight - scrollTop;
+    const velocity = getVelocity();
+    const fontSize = parseInt($('#sync-text').css('font-size'));
+    // Pixels scrolled per interval (25ms)
+    const pxPerInterval = velocity * fontSize / 5.62;
+    if (isPlaying && pxPerInterval > 0 && remaining > 0) {
+        const msRemaining = (remaining / pxPerInterval) * 25;
+        const totalSeconds = Math.ceil(msRemaining / 1000);
+        const min = Math.floor(totalSeconds / 60);
+        const sec = totalSeconds % 60;
+        document.getElementById('time-remaining').textContent =
+            min > 0 ? `${min}m ${sec.toString().padStart(2, '0')}s` : `${sec}s`;
+    } else {
+        document.getElementById('time-remaining').textContent = '';
+    }
+}
+
 // When the socket connects to the server, print a message to the console
 socket.on('connect', () => {
     socket.emit('join_room', { 'room_id': room_id });
@@ -179,6 +201,7 @@ function changeColor() {
 $('#velocity').on('input', () => {
     $('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
     updateAndSave({ 'velocity': getVelocity() });
+    updateTimeRemaining();
 });
 
 // Update the font size label when the font size slider is changed
@@ -187,6 +210,7 @@ $('#font-size').on('input', () => {
     $('#font-size-value').text(fontSize + 'px');
     $('#sync-text').css('font-size', fontSize + 'px');
     updateAndSave({ 'fontSize': fontSize });
+    updateTimeRemaining();
 });
 
 // Change the text with, update the arrows position and sync the state
@@ -341,6 +365,10 @@ document.querySelector('#sync-text').addEventListener('wheel', (e) => {
     }
 });
 
+$('#sync-text').on('scroll', () => {
+    updateTimeRemaining();
+});
+
 // Toggle the automatic scroll based on velocity and font size
 function toggleAutoScroll() {
     if (isPlaying) {
@@ -349,11 +377,28 @@ function toggleAutoScroll() {
             const velocity = getVelocity();
             const fontSize = parseInt($('#sync-text').css('font-size'));
             const scrollTop = $('#sync-text').scrollTop();
-            $('#sync-text').scrollTop(scrollTop + velocity * fontSize / 5.62);
+            const syncText = document.getElementById('sync-text');
+            const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+            // Calcul du nouveau scroll
+            const newScrollTop = scrollTop + velocity * fontSize / 5.62;
+            if (newScrollTop >= maxScroll - 1) { // On tolère 1px de marge
+                $('#sync-text').scrollTop(maxScroll);
+                isPlaying = false;
+                $('#play-pause').html('<i class="fas fa-play"></i>');
+                updateAndSave({ scrollTop: maxScroll, 'isPlaying': false, 'velocity': getVelocity() });
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+                updateTimeRemaining();
+                return;
+            }
+            $('#sync-text').scrollTop(newScrollTop);
+            updateTimeRemaining();
         }, 25);
+        updateTimeRemaining();
     } else {
         clearInterval(autoScrollInterval);
         autoScrollInterval = null;
+        updateTimeRemaining();
     }
 }
 
@@ -472,4 +517,5 @@ $(document).ready(function () {
             icon.removeClass('fa-eye').addClass('fa-eye-slash');
         }
     });
+    updateTimeRemaining();
 });
