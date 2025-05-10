@@ -43,6 +43,12 @@ body {
     transform: scaleX(1) scaleY(1);
 }
 
+.prompter-text:focus {
+    outline: none;
+    box-shadow: none;
+    border: none;
+}
+
 .controls {
     width: 100%;
     position: fixed;
@@ -60,6 +66,49 @@ body {
 
 .controls:hover {
     opacity: 1;
+}
+
+/* Only hide the controls content, not the toggle button */
+.controls .controls-content.hidden-controls {
+    display: none !important;
+}
+
+/* Ensure the toggle button is always visible */
+#toggle-controls {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    z-index: 2;
+    position: relative;
+}
+
+.controls>div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.controls-buttons-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 24px;
+}
+
+.main-controls-row {
+    display: flex;
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+}
+
+.formatting-controls-row {
+    display: flex;
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    margin-top: 8px;
 }
 
 .btn {
@@ -122,6 +171,48 @@ body {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.2);
+}
+
+/* --- SLIDERS LAYOUT: always horizontal row for .slider-pair --- */
+.sliders-group {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    width: auto !important;
+    gap: 4px !important;
+}
+
+.slider-pair {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    width: auto !important;
+    gap: 16px !important;
+}
+
+.slider-pair>div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+}
+
+.slider-pair label {
+    margin-bottom: 0 !important;
+}
+
+.sliders-group input[type="range"] {
+    min-width: 120px !important;
+    width: 140px !important;
+    max-width: 180px !important;
+}
+
+.slider-pair input[type="range"] {
+    margin-top: 0 !important;
 }
 
 /* Mobile L, Portrait */
@@ -200,4 +291,14 @@ body {
         min-width: 260px !important;
         height: 130px;
     }
+}
+
+@media (max-width: 912px) {
+    #color-area {
+        display: none !important;
+    }
+}
+
+@media (max-width: 733px) {
+    /* No change needed, keep the same layout for small screens */
 }

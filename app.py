@@ -1,16 +1,22 @@
+"""
+Main application file for Sway Prompter.
+All code, comments, and docstrings must be in English.
+"""
+
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_socketio import SocketIO, emit, join_room
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import OperationalError
-import random, string, os
+import random
+import string
+import os
 from dotenv import load_dotenv
 
-# import redis used for caching to improve performance for the future
-
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(override=True)
+print("RAW DATABASE_URL:", os.environ.get("DATABASE_URL"))
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -25,88 +31,93 @@ socketio = SocketIO(app)
 print(f'DATABASE_URL: {os.getenv("DATABASE_URL")}')
 db = SQLAlchemy(app)
 
-# Initialize Redis
-# r = redis.Redis(host='localhost', port=6379, db=0) used for caching to improve performance for the future
-
 # Initialize the limiter
 limiter = Limiter(app=app, key_func=get_remote_address)
 
 
 class Room(db.Model):
-    id = db.Column(db.String(11), primary_key=True, unique=True, nullable=False)
-    room_name = db.Column(db.String(100), nullable=False)
+    """
+    SQLAlchemy model for a room.
+    """
+
+    id: str = db.Column(db.String(11), primary_key=True, unique=True, nullable=False)
+    room_name: str = db.Column(db.String(100), nullable=False)
 
 
-# Function to generate a random ID with a default length of 11
-def generate_random_id(length=11):
+def generate_random_id(length: int = 11) -> str:
+    """
+    Generate a random string ID for a room.
+    Args:
+        length (int): Length of the ID. Default is 11.
+    Returns:
+        str: Randomly generated ID.
+    """
     allowed_chars = string.ascii_letters + string.digits + "-_"
     return "".join(random.choice(allowed_chars) for _ in range(length))
 
 
-# Route for the creation of a new room
 @app.route("/")
 def index():
+    """
+    Render the index page for room creation.
+    """
     return render_template("index.html")
 
 
-# Route to create a new room
 @app.route("/create_room", methods=["POST"])
 @limiter.limit("10/minute")
 def create_room():
-    room_name = request.form.get("room_name", "").strip()
-    room_id = generate_random_id()
+    """
+    Create a new room and redirect to it.
+    """
+    room_name: str = request.form.get("room_name", "").strip()
+    room_id: str = generate_random_id()
     new_room = Room(id=room_id, room_name=room_name)
     db.session.add(new_room)
     db.session.commit()
     return jsonify({"redirect_url": url_for("room", room_id=room_id)})
 
 
-# Route to join a specific room
 @app.route("/r/<room_id>")
 @limiter.limit("100/minute")
-def room(room_id):
+def room(room_id: str):
+    """
+    Join a specific room by ID.
+    """
     room = db.session.get(Room, room_id)
     if not room:
         return redirect(url_for("room_not_found"))
     return render_template("room.html", room_id=room.id, room_name=room.room_name)
 
 
-# Socket event when a user joins a room
 @socketio.on("join_room")
-def on_join(data):
-    room_id = data["room_id"]
+def on_join(data: dict) -> None:
+    """
+    Handle a user joining a room via SocketIO.
+    """
+    room_id: str = data["room_id"]
     join_room(room_id)
     room = db.session.get(Room, room_id)
     if room:
         emit("update_properties", {"room_name": room.room_name})
 
 
-# used for caching to improve performance for the future
-"""
-def get_room(room_id):
-    # Try to get the result from Redis first
-    room = r.get(room_id)
-    if room is None:
-        # If it's not in Redis, get it from the database
-        room = db.session.get(Room, room_id)
-        # Then store it in Redis for next time
-        r.set(room_id, room)
-    return room
-"""
-
-
-# Route for the 404 page
 @app.route("/notfound")
 @limiter.limit("100/minute")
 def room_not_found():
+    """
+    Render the 404 error page for missing rooms.
+    """
     return render_template("errors/404.html"), 404
 
 
-# Route to load the state of a room
 @app.route("/load_state", methods=["GET"])
 @limiter.limit("100/minute")
 def load_state():
-    room_id = request.args.get("room_id")
+    """
+    Load the state of a room by ID.
+    """
+    room_id: str = request.args.get("room_id")
     room = db.session.get(Room, room_id)
     if room:
         return jsonify({"room_name": room.room_name})
@@ -114,18 +125,20 @@ def load_state():
         return jsonify({})
 
 
-# Socket event when a user updates the properties of a room
 @socketio.on("properties_updated")
-def handle_properties_update(data):
-    room_id = data["room_id"]
+def handle_properties_update(data: dict) -> None:
+    """
+    Handle updates to room properties via SocketIO.
+    """
+    room_id: str = data["room_id"]
     room = db.session.get(Room, room_id)
     if room:
         try:
             room.room_name = data.get("room_name", room.room_name)
             db.session.commit()
-        except OperationalError as e:
+        except OperationalError:
             db.session.rollback()
-            # Handle or log the error as appropriate
+            # Log or handle the error as needed
     else:
         new_room = Room(id=room_id, room_name=data.get("room_name", "Unnamed Room"))
         db.session.add(new_room)
@@ -133,7 +146,6 @@ def handle_properties_update(data):
     emit("update_properties", data, room=room_id, include_self=False)
 
 
-# Run the Flask app
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

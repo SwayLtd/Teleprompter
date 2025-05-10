@@ -21,7 +21,7 @@ socket.on('update_properties', data => {
         }
         if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
             $('#room-name').text(data['room_name']);
-            document.title = data['room_name'] + " - Bewr Prompter";
+            document.title = data['room_name'] + " - Sway Prompter";
         }
         if (data['isPlaying'] !== isPlaying && data['isPlaying'] !== undefined) {
             isPlaying = data['isPlaying'];
@@ -71,7 +71,7 @@ $('#sync-text').on('click', () => {
 // When the room name is changed, update the room name and send it to the server
 $('#room-name').on('input', () => {
     updateAndSave({ 'room_name': $('#room-name').text().trim() });
-    document.title = $('#room-name').text().trim() + " - Bewr Prompter";
+    document.title = $('#room-name').text().trim() + " - Sway Prompter";
 });
 
 // When the play/pause button is clicked, toggle the auto-scrolling state and send the updated settings to the server
@@ -377,7 +377,7 @@ function loadState() {
             if (state) {
                 $('#sync-text').html(state.text || '\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
                 $('#room-name').text(state.room_name || 'Unnamed Room');
-                document.title = state.room_name + " - Bewr Prompter" || 'Unnamed Room' + " - Bewr Prompter";
+                document.title = state.room_name + " - Sway Prompter" || 'Unnamed Room' + " - Sway Prompter";
                 isPlaying = (typeof state.isPlaying !== 'undefined') ? state.isPlaying : false;
                 $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
                 toggleAutoScroll();
@@ -459,3 +459,17 @@ function loadLocalStorage() {
 // Initialize settings
 loadState(); // Load state from the server
 loadLocalStorage(); // Load state from the local browser storage
+
+$(document).ready(function () {
+    // Toggle controls bar visibility
+    $('#toggle-controls').on('click', function () {
+        const controlsBar = $('#controls-bar');
+        const icon = $('#toggle-controls-icon');
+        controlsBar.toggle();
+        if (controlsBar.is(':visible')) {
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        }
+    });
+});
