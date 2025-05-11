@@ -7,25 +7,88 @@ const room_id = window.location.pathname.split('/')[2];
 let isPlaying = false;
 let autoScrollInterval;
 
-function updateTimeRemaining() {
+// --- Real-time reading timer state ---
+let readingTimerInterval = null;
+let readingElapsed = 0; // in seconds
+let readingTotal = 0; // in seconds
+let lastTick = null;
+
+function formatSeconds(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+}
+
+function computeReadingTotal() {
     const syncText = document.getElementById('sync-text');
-    const scrollTop = syncText.scrollTop;
     const scrollHeight = syncText.scrollHeight;
     const clientHeight = syncText.clientHeight;
-    const remaining = scrollHeight - clientHeight - scrollTop;
     const velocity = getVelocity();
     const fontSize = parseInt($('#sync-text').css('font-size'));
-    // Pixels scrolled per interval (25ms)
     const pxPerInterval = velocity * fontSize / 5.62;
-    if (isPlaying && pxPerInterval > 0 && remaining > 0) {
-        const msRemaining = (remaining / pxPerInterval) * 25;
-        const totalSeconds = Math.ceil(msRemaining / 1000);
-        const min = Math.floor(totalSeconds / 60);
-        const sec = totalSeconds % 60;
-        document.getElementById('time-remaining').textContent =
-            min > 0 ? `${min}m ${sec.toString().padStart(2, '0')}s` : `${sec}s`;
+    if (pxPerInterval > 0) {
+        return Math.ceil((scrollHeight - clientHeight) / pxPerInterval * 25 / 1000);
+    }
+    return 0;
+}
+
+function updateSecondsBar() {
+    // Clamp elapsed to total
+    if (readingElapsed > readingTotal) readingElapsed = readingTotal;
+    document.getElementById('seconds-remaining').textContent = `${formatSeconds(readingElapsed)} / ${formatSeconds(readingTotal)}`;
+}
+
+function resetReadingTimer() {
+    readingElapsed = 0;
+    readingTotal = computeReadingTotal();
+    updateSecondsBar();
+}
+
+function startReadingTimer() {
+    if (readingTimerInterval) return;
+    lastTick = Date.now();
+    readingTimerInterval = setInterval(() => {
+        if (!isPlaying) return;
+        const now = Date.now();
+        const delta = (now - lastTick) / 1000;
+        lastTick = now;
+        readingElapsed += delta;
+        if (readingElapsed >= readingTotal) {
+            readingElapsed = readingTotal;
+            stopReadingTimer();
+        }
+        updateSecondsBar();
+    }, 250);
+}
+
+function stopReadingTimer() {
+    if (readingTimerInterval) {
+        clearInterval(readingTimerInterval);
+        readingTimerInterval = null;
+    }
+    updateSecondsBar();
+}
+
+// Helper to set the real text content in sync-text, after spacers
+function setSyncTextContent(html) {
+    const syncText = document.getElementById('sync-text');
+    // Remove all nodes except spacers
+    Array.from(syncText.childNodes).forEach(node => {
+        if (!node.id || (node.id !== 'scroll-start-spacer' && node.id !== 'scroll-end-spacer')) {
+            syncText.removeChild(node);
+        }
+    });
+    // Insert after scroll-start-spacer if present, else at start
+    let startSpacer = document.getElementById('scroll-start-spacer');
+    let frag = document.createElement('div');
+    frag.innerHTML = html;
+    let nodes = Array.from(frag.childNodes);
+    if (startSpacer && startSpacer.nextSibling) {
+        nodes.reverse().forEach(n => syncText.insertBefore(n, startSpacer.nextSibling));
+    } else if (startSpacer) {
+        nodes.forEach(n => syncText.appendChild(n));
     } else {
-        document.getElementById('time-remaining').textContent = '';
+        nodes.forEach(n => syncText.appendChild(n));
     }
 }
 
@@ -38,8 +101,10 @@ socket.on('connect', () => {
 // When the server sends an 'update_properties' event
 socket.on('update_properties', data => {
     if (data['room_id'] === room_id) {
-        if (data['text'] !== $('#sync-text').html() && data['text'] !== undefined) {
-            $('#sync-text').html(data['text']);
+        let resetTimer = false;
+        if (data['text'] !== undefined) {
+            setSyncTextContent(data['text']);
+            resetTimer = true;
         }
         if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
             $('#room-name').text(data['room_name']);
@@ -49,6 +114,11 @@ socket.on('update_properties', data => {
             isPlaying = data['isPlaying'];
             $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
             toggleAutoScroll();
+            if (isPlaying) {
+                startReadingTimer();
+            } else {
+                stopReadingTimer();
+            }
         }
         if (data['scrollTop'] !== $('#sync-text').scrollTop() && data['scrollTop'] !== undefined) {
             $('#sync-text').scrollTop(data['scrollTop']);
@@ -56,11 +126,13 @@ socket.on('update_properties', data => {
         if (data['velocity'] !== getVelocity() && data['velocity'] !== undefined) {
             $('#velocity').val(data['velocity'] * 10);
             $('#velocity-value').text((data['velocity'] * 100).toFixed(0) + '%');
+            resetTimer = true;
         }
         if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
             $('#sync-text').css('font-size', data['fontSize'] + 'px');
             $('#font-size').val(data['fontSize']);
             $('#font-size-value').text(data['fontSize'] + 'px');
+            resetTimer = true;
         }
         if (data['textWidth'] !== parseInt($('#text-width').val()) && data['textWidth'] !== undefined) {
             $('#sync-text').css('width', data['textWidth'] + '%');
@@ -77,12 +149,17 @@ socket.on('update_properties', data => {
             $('#arrows-top').val(data['arrowTop']);
             $('#arrows-top-value').text(data['arrowTop'] + '%');
         }
+        if (resetTimer) {
+            resetReadingTimer();
+        }
+        updateSecondsBar();
     }
 });
 
 // Text synchronization and sending scroll position to the server to the the editing
 $('#sync-text').on('input', () => {
-    updateAndSave({ 'text': $('#sync-text').html(), 'scrollTop': $('#sync-text').scrollTop() });
+    updateAndSave({ 'text': document.getElementById('sync-text').innerHTML, 'scrollTop': $('#sync-text').scrollTop() });
+    resetReadingTimer();
 });
 
 // Sending scroll position to the server to the the editing
@@ -106,6 +183,11 @@ $('#play-pause').on('click', () => {
         updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
     }
     toggleAutoScroll();
+    if (isPlaying) {
+        startReadingTimer();
+    } else {
+        stopReadingTimer();
+    }
 });
 
 // When the alignment button is clicked, toggle the text alignment and save it to local storage
@@ -157,7 +239,7 @@ $('#invert-h').click(() => {
 $('#sync').click(() => {
     // Save and sync state
     let fontSize = parseInt($('#sync-text').css('font-size'));
-    updateAndSave({ 'text': $('#sync-text').html(), room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#text-width').val(), 'arrowTop': $('#arrows-top').val() });
+    updateAndSave({ 'text': document.getElementById('sync-text').innerHTML, room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#text-width').val(), 'arrowTop': $('#arrows-top').val() });
 });
 
 // Reset all local storage values to their defaults
@@ -201,7 +283,7 @@ function changeColor() {
 $('#velocity').on('input', () => {
     $('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
     updateAndSave({ 'velocity': getVelocity() });
-    updateTimeRemaining();
+    resetReadingTimer();
 });
 
 // Update the font size label when the font size slider is changed
@@ -210,7 +292,7 @@ $('#font-size').on('input', () => {
     $('#font-size-value').text(fontSize + 'px');
     $('#sync-text').css('font-size', fontSize + 'px');
     updateAndSave({ 'fontSize': fontSize });
-    updateTimeRemaining();
+    resetReadingTimer();
 });
 
 // Change the text with, update the arrows position and sync the state
@@ -227,6 +309,7 @@ $('#text-width').on('input', function () {
     $('.arrow-right').css('left', arrowWidthPosition + '%');
 
     updateAndSave({ 'textWidth': textWidth });
+    updateSecondsBar();
 });
 
 // Change the arrow height and sync the state
@@ -239,6 +322,8 @@ $('#arrows-top').on('input', function () {
     $('.arrow-right').css('top', arrowTop + '%');
 
     updateAndSave({ 'arrowTop': arrowTop });
+    updateSecondsBar();
+    updateSyncTextPadding();
 });
 
 // When the background color picker is changed, update the background color in the UI and save it to local storage
@@ -264,10 +349,15 @@ window.addEventListener('keydown', function (e) {
         $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
         updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
         toggleAutoScroll();
+        if (isPlaying) {
+            startReadingTimer();
+        } else {
+            stopReadingTimer();
+        }
     } else if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
         // Save and sync state
         let fontSize = parseInt($('#sync-text').css('font-size'));
-        updateAndSave({ 'text': $('#sync-text').html(), room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#sync-text').width(), 'arrowTop': $('#arrows-top').val() });
+        updateAndSave({ 'text': document.getElementById('sync-text').innerHTML, room_name: $('#room-name').text().trim(), 'isPlaying': isPlaying, scrollTop: $('#sync-text').scrollTop(), 'velocity': getVelocity(), fontSize: fontSize, 'textWidth': $('#sync-text').width(), 'arrowTop': $('#arrows-top').val() });
     } else if (e.key === 'ArrowUp') {
         // Increase velocity
         let velocity = getVelocity();
@@ -276,6 +366,7 @@ window.addEventListener('keydown', function (e) {
             $('#velocity').val(velocity * 10);
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
             updateAndSave({ 'velocity': getVelocity() });
+            resetReadingTimer();
         }
     } else if (e.key === 'ArrowDown') {
         // Decrease velocity
@@ -285,6 +376,7 @@ window.addEventListener('keydown', function (e) {
             $('#velocity').val(velocity * 10);
             $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
             updateAndSave({ 'velocity': getVelocity() });
+            resetReadingTimer();
         }
     } else if (e.key === 'ArrowRight') {
         // Increase font size
@@ -295,6 +387,7 @@ window.addEventListener('keydown', function (e) {
             $('#font-size-value').text(fontSize + 'px');
             $('#sync-text').css('font-size', fontSize + 'px');
             updateAndSave({ 'fontSize': fontSize });
+            resetReadingTimer();
         }
     } else if (e.key === 'ArrowLeft') {
         // Decrease font size
@@ -305,6 +398,7 @@ window.addEventListener('keydown', function (e) {
             $('#font-size-value').text(fontSize + 'px');
             $('#sync-text').css('font-size', fontSize + 'px');
             updateAndSave({ 'fontSize': fontSize });
+            resetReadingTimer();
         }
     }
 });
@@ -321,6 +415,7 @@ window.addEventListener('wheel', (e) => {
                 $('#velocity').val(velocity * 10);
                 $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
                 updateAndSave({ 'velocity': getVelocity() });
+                resetReadingTimer();
             }
         } else {
             // Increase velocity
@@ -330,6 +425,7 @@ window.addEventListener('wheel', (e) => {
                 $('#velocity').val(velocity * 10);
                 $('#velocity-value').text((velocity * 100).toFixed(0) + '%');
                 updateAndSave({ 'velocity': getVelocity() });
+                resetReadingTimer();
             }
         }
         // Increase/decrease font size with the mouse wheel while holding shift
@@ -343,6 +439,7 @@ window.addEventListener('wheel', (e) => {
                 $('#font-size-value').text(fontSize + 'px');
                 $('#sync-text').css('font-size', fontSize + 'px');
                 updateAndSave({ 'fontSize': fontSize });
+                resetReadingTimer();
             }
         } else {
             // Increase font size
@@ -353,6 +450,7 @@ window.addEventListener('wheel', (e) => {
                 $('#font-size-value').text(fontSize + 'px');
                 $('#sync-text').css('font-size', fontSize + 'px');
                 updateAndSave({ 'fontSize': fontSize });
+                resetReadingTimer();
             }
         }
     }
@@ -366,7 +464,22 @@ document.querySelector('#sync-text').addEventListener('wheel', (e) => {
 });
 
 $('#sync-text').on('scroll', () => {
-    updateTimeRemaining();
+    // Synchronize timer with manual scroll position
+    const syncText = document.getElementById('sync-text');
+    const scrollTop = syncText.scrollTop;
+    const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+    if (readingTotal > 0 && maxScroll > 0) {
+        if (maxScroll - scrollTop < 2) {
+            // If at the very end, set to total
+            readingElapsed = readingTotal;
+        } else {
+            const ratio = Math.max(0, Math.min(1, scrollTop / maxScroll));
+            readingElapsed = readingTotal * ratio;
+        }
+    } else {
+        readingElapsed = 0;
+    }
+    updateSecondsBar();
 });
 
 // Toggle the automatic scroll based on velocity and font size
@@ -388,17 +501,20 @@ function toggleAutoScroll() {
                 updateAndSave({ scrollTop: maxScroll, 'isPlaying': false, 'velocity': getVelocity() });
                 clearInterval(autoScrollInterval);
                 autoScrollInterval = null;
-                updateTimeRemaining();
+                stopReadingTimer();
+                updateSecondsBar();
                 return;
             }
             $('#sync-text').scrollTop(newScrollTop);
-            updateTimeRemaining();
+            updateSecondsBar();
         }, 25);
-        updateTimeRemaining();
+        updateSecondsBar();
+        startReadingTimer();
     } else {
         clearInterval(autoScrollInterval);
         autoScrollInterval = null;
-        updateTimeRemaining();
+        stopReadingTimer();
+        updateSecondsBar();
     }
 }
 
@@ -420,7 +536,7 @@ function loadState() {
         data: { 'room_id': room_id },
         success: function (state) {
             if (state) {
-                $('#sync-text').html(state.text || '\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
+                setSyncTextContent(state.text || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.');
                 $('#room-name').text(state.room_name || 'Unnamed Room');
                 document.title = state.room_name + " - Sway Prompter" || 'Unnamed Room' + " - Sway Prompter";
                 isPlaying = (typeof state.isPlaying !== 'undefined') ? state.isPlaying : false;
@@ -446,8 +562,9 @@ function loadState() {
                 $('.arrow-right').css('left', arrowWidthPosition + '%');
                 $('.arrow-left').css('top', arrowTopPosition + '%');
                 $('.arrow-right').css('top', arrowTopPosition + '%');
+                resetReadingTimer();
             } else {
-                $('#sync-text').html('\n\n\n\n\n\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\n\n\n\n\n\n');
+                setSyncTextContent('Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.');
                 $('#room-name').text('Unnamed Room');
                 isPlaying = false;
                 $('#play-pause').html('<i class="fas fa-play"></i>');
@@ -470,13 +587,105 @@ function loadState() {
                 $('.arrow-right').css('left', arrowWidthPosition + '%');
                 $('.arrow-left').css('top', '45%');
                 $('.arrow-right').css('top', '45%');
+                resetReadingTimer();
             }
+            updateSyncTextPadding();
         },
         error: function (error) {
             console.error('Error loading state:', error);
         }
     });
 }
+
+// Ajoute ou met à jour le padding du texte pour aligner avec les flèches
+function updateSyncTextPadding() {
+    const arrowLeft = document.querySelector('.arrow-left');
+    const syncText = document.getElementById('sync-text');
+    if (!arrowLeft || !syncText) return;
+
+    // Remove any previous spacers
+    let scrollStartSpacer = document.getElementById('scroll-start-spacer');
+    if (scrollStartSpacer) scrollStartSpacer.remove();
+    let scrollEndSpacer = document.getElementById('scroll-end-spacer');
+    if (scrollEndSpacer) scrollEndSpacer.remove();
+
+    // Get arrow position
+    const arrowRect = arrowLeft.getBoundingClientRect();
+    const prompterRect = syncText.getBoundingClientRect();
+    const arrowTop = arrowRect.top - prompterRect.top;
+    const spacerHeight = prompterRect.height - arrowTop;
+
+    // Add top spacer
+    scrollStartSpacer = document.createElement('div');
+    scrollStartSpacer.id = 'scroll-start-spacer';
+    scrollStartSpacer.style.height = `${arrowTop}px`;
+    scrollStartSpacer.style.width = '100%';
+    scrollStartSpacer.style.pointerEvents = 'none';
+    scrollStartSpacer.setAttribute('contenteditable', 'false');
+    scrollStartSpacer.setAttribute('tabindex', '-1');
+    scrollStartSpacer.setAttribute('aria-hidden', 'true');
+    scrollStartSpacer.className = 'spacer-non-editable';
+    syncText.insertBefore(scrollStartSpacer, syncText.firstChild);
+
+    // Add bottom spacer
+    scrollEndSpacer = document.createElement('div');
+    scrollEndSpacer.id = 'scroll-end-spacer';
+    scrollEndSpacer.style.height = `${spacerHeight}px`;
+    scrollEndSpacer.style.width = '100%';
+    scrollEndSpacer.style.pointerEvents = 'none';
+    scrollEndSpacer.setAttribute('contenteditable', 'false');
+    scrollEndSpacer.setAttribute('tabindex', '-1');
+    scrollEndSpacer.setAttribute('aria-hidden', 'true');
+    scrollEndSpacer.className = 'spacer-non-editable';
+    syncText.appendChild(scrollEndSpacer);
+
+    syncText.style.paddingTop = `0px`;
+    syncText.style.paddingBottom = `0px`;
+}
+
+// Prevent caret from entering the spacers
+$('#sync-text').on('focus', function () {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+    if (node && node.parentElement && node.parentElement.classList.contains('spacer-non-editable')) {
+        // Move caret after the spacer
+        let syncText = document.getElementById('sync-text');
+        if (syncText.childNodes.length > 1) {
+            let next = syncText.childNodes[1];
+            let r = document.createRange();
+            r.setStart(next, 0);
+            r.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(r);
+        }
+    }
+});
+
+// Prevent typing in spacers
+$('#sync-text').on('keydown', function (e) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const node = sel.anchorNode;
+    if (node && node.parentElement && node.parentElement.classList.contains('spacer-non-editable')) {
+        e.preventDefault();
+        // Optionally move caret after the spacer
+        let syncText = document.getElementById('sync-text');
+        if (syncText.childNodes.length > 1) {
+            let next = syncText.childNodes[1];
+            let r = document.createRange();
+            r.setStart(next, 0);
+            r.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(r);
+        }
+    }
+});
+
+// Appelle la fonction au chargement, au redimensionnement et lors du déplacement des flèches
+window.addEventListener('load', updateSyncTextPadding);
+window.addEventListener('resize', updateSyncTextPadding);
 
 // Load the state of the app from local storage
 function loadLocalStorage() {
@@ -517,5 +726,29 @@ $(document).ready(function () {
             icon.removeClass('fa-eye').addClass('fa-eye-slash');
         }
     });
-    updateTimeRemaining();
+    // Toggle left controls popup
+    $('#toggle-controls-left').on('click', function () {
+        const leftPopup = $('#popup-controls-left');
+        const icon = $('#toggle-controls-left-icon');
+        leftPopup.toggle();
+        if (leftPopup.is(':visible')) {
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        }
+    });
+    // Toggle right controls popup
+    $('#toggle-controls-right').on('click', function () {
+        const rightPopup = $('#popup-controls-right');
+        const icon = $('#toggle-controls-right-icon');
+        rightPopup.toggle();
+        if (rightPopup.is(':visible')) {
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        } else {
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        }
+    });
+    resetReadingTimer();
+    updateSecondsBar();
+    updateSyncTextPadding();
 });

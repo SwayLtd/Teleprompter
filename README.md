@@ -24,14 +24,17 @@ Sway Teleprompter: A collaborative teleprompter tool designed for real-time, mul
 * [X] Sync text width
 * [X] Move the arrows up and down
 * [X] Automatically pause the text scrolling when it reach the end of the scroll
+* [X] Timer formatting (00:00:00 / 00:00:00)
+* [X] Add the space before and after the text automatically depending on the text to start and end where the arrows are
 * [ ] Remove jQuery to use only vanilla JavaScript
 * [ ] Moving all isPlaying changes to toogleAutoScroll()
 * [ ] Limit the number of interface of the same room opened at the same time
 * [ ] Button to invert the arrow shortcuts and wheel scroll direction
+* [ ] Add a button to fullscreen the prompter
 
 ### Planned Features
 
-* [ ] UI v2
+* [ ] UI v2 (new phone remote, new controls)
 * [ ] Scroll pad for mobile
 * [ ] Implement Redis to store rate limiting data and for caching to improve performances (don't forget Handle Cache Invalidation)
 * [ ] Bluetooth remote implementation

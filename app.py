@@ -16,7 +16,6 @@ from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv(override=True)
-print("RAW DATABASE_URL:", os.environ.get("DATABASE_URL"))
 
 # Initialize Flask app
 app = Flask(__name__)
