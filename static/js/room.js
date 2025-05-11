@@ -715,6 +715,8 @@ loadState(); // Load state from the server
 loadLocalStorage(); // Load state from the local browser storage
 
 $(document).ready(function () {
+    // Affiche la valeur initiale de la vélocité à 30%
+    $('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
     // Toggle controls bar visibility
     $('#toggle-controls').on('click', function () {
         const controlsBar = $('#controls-bar');
