@@ -28,38 +28,40 @@
         <div id="scroll-end-spacer" class="spacer-non-editable" aria-hidden="true" tabindex="-1"
             contenteditable="false"></div>
         </pre>
-        <!-- Toggle buttons OUTSIDE popups, positioned at far left and right, at the bottom of the window -->
-        <div class="popup-toggles-bar-bottom">
-            <div class="toggle-btn-wrapper-left">
-                <button id="toggle-controls-left" class="btn" title="Show/hide left controls">
-                    <i id="toggle-controls-left-icon" class="fas fa-eye"></i>
-                </button>
-                <!-- Small triangle at top right of left toggle -->
-                <span class="toggle-corner-triangle"></span>
-            </div>
-            <div class="toggle-btn-wrapper-right">
-                <button id="toggle-controls-right" class="btn" title="Show/hide right controls">
-                    <i id="toggle-controls-right-icon" class="fas fa-eye"></i>
-                </button>
-                <!-- Small triangle at top left of right toggle -->
-                <span class="toggle-corner-triangle toggle-corner-triangle-right"></span>
-            </div>
-        </div>
-        <!-- Popup Left Controls -->
-        <div class="popup-controls popup-controls-left" id="popup-controls-left">
-            <div class="main-controls-row">
-                <button id="play-pause" class="btn" title="Play/pause"><i class=" fas fa-play"></i></button>
-                <button id="toggle-align" class="btn" title="Change text alignment"><i
-                        class="fas fa-align-center"></i></button>
-                <button id="invert-v" class="btn" title="Revert text vertically"><i
-                        class="fas fa-arrows-alt-v"></i></button>
-                <button id="invert-h" class="btn" title="Revert text horizontally"><i
-                        class="fas fa-arrows-alt-h"></i></button>
-                <button id="sync" class="btn" title="Force properties sync"><i class="fas fa-sync-alt"></i></button>
-                <button id="reset" class="btn" title="Reset local settings"><i class="fas fa-undo"></i></button>
-            </div>
-            <div class="sliders-group">
-                <div class="slider-pair">
+        <!-- Updated right sidebar menu -->
+        <div id="side-menu" class="side-menu-closed">
+            <div class="side-menu-content">
+                <div class="side-menu-logo"
+                    style="display: flex; justify-content: center; align-items: center; margin-bottom: 18px;">
+                    <img src="/static/img/sway-logo.png" alt="Sway Logo" style="max-width: 120px; max-height: 60px;" />
+                </div>
+                <div class="side-menu-btns">
+                    <div class="btn-row">
+                        <button id="play-pause" class="btn" title="Play/pause"><i class="fas fa-play"></i></button>
+                        <button id="toggle-align" class="btn" title="Change text alignment"><i
+                                class="fas fa-align-center"></i></button>
+                        <button id="invert-v" class="btn" title="Revert text vertically"><i
+                                class="fas fa-arrows-alt-v"></i></button>
+                        <button id="invert-h" class="btn" title="Revert text horizontally"><i
+                                class="fas fa-arrows-alt-h"></i></button>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn" onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
+                        <button class="btn" onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
+                        <button class="btn" onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
+                        <button class="btn" onclick="formatText('strikethrough')"><i
+                                class="fas fa-strikethrough"></i></button>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn" onclick="formatText('foreColor')"><i class="fas fa-font"></i></button>
+                        <input type="color" id="colorPicker" oninput="changeColor()" style="display:none">
+                        <button class="btn" onclick="formatText('removeFormat')"><i class="fas fa-eraser"></i></button>
+                        <button id="sync" class="btn" title="Force properties sync"><i
+                                class="fas fa-sync-alt"></i></button>
+                        <button id="reset" class="btn" title="Reset local settings"><i class="fas fa-undo"></i></button>
+                    </div>
+                </div>
+                <div class="side-menu-sliders">
                     <div class="slider-label-group">
                         <label for="velocity">Velocity: <span id="velocity-value"></span></label>
                         <input id="velocity" type="range" min="1" max="10" value="1" step="0.5">
@@ -68,8 +70,6 @@
                         <label for="font-size">Font size: <span id="font-size-value"></span></label>
                         <input id="font-size" type="range" min="45" max="96" value="72">
                     </div>
-                </div>
-                <div class="slider-pair">
                     <div class="slider-label-group">
                         <label for="text-width">Text width: <span id="text-width-value"></span></label>
                         <input id="text-width" type="range" min="45" max="90" value="90">
@@ -79,25 +79,23 @@
                         <input id="arrows-top" type="range" min="20" max="80" value="45">
                     </div>
                 </div>
-            </div>
-        </div>
-        <!-- Popup Right Controls -->
-        <div class="popup-controls popup-controls-right" id="popup-controls-right">
-            <div class="formatting-controls-row">
-                <button class="btn" onclick="formatText('bold')"><i class="fas fa-bold"></i></button>
-                <button class="btn" onclick="formatText('italic')"><i class="fas fa-italic"></i></button>
-                <button class="btn" onclick="formatText('underline')"><i class="fas fa-underline"></i></button>
-                <button class="btn" onclick="formatText('strikethrough')"><i class="fas fa-strikethrough"></i></button>
-                <button class="btn" onclick="formatText('foreColor')"><i class="fas fa-font"></i></button>
-                <input type="color" id="colorPicker" oninput="changeColor()" style="display:none">
-                <button class="btn" onclick="formatText('removeFormat')"><i class="fas fa-eraser"></i></button>
-            </div>
-            <div id="color-area">
-                <div>
-                    <input id="bg-color" type="color" value="#282c34"> Background color
+                <div class="side-menu-bgcolor">
+                    <label for="bg-color">Background color:</label>
+                    <input id="bg-color" type="color" value="#282c34">
+                    <button id="reset-bg-color" class="btn" title="Reset background color" style="margin-left:8px;">
+                        <i class="fas fa-undo"></i>
+                    </button>
                 </div>
             </div>
         </div>
+        <!-- Floating button to toggle the sidebar menu -->
+        <button id="toggle-side-menu" class="btn side-menu-toggle-btn" title="Show/hide menu">
+            <span id="side-menu-toggle-icon" class="burger-icon">
+                <span class="bar bar1"></span>
+                <span class="bar bar2"></span>
+                <span class="bar bar3"></span>
+            </span>
+        </button>
     </div>
     <img id="arrow-left" class="arrow arrow-left" src="https://cdn-icons-png.flaticon.com/512/57/57043.png"
         alt="Arrow left" />

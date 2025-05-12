@@ -265,7 +265,27 @@ $('#reset').click(() => {
     $('.arrow-right').css('left', '-10px');
     $('.arrow-left').css('top', '45%');
     $('.arrow-right').css('top', '45%');
+    // Reset sliders
+    $('#text-width').val('90');
+    $('#text-width-value').text('90%');
+    $('#arrows-top').val('45');
+    $('#arrows-top-value').text('45%');
+    // Appliquer la largeur du texte
+    $('#sync-text').width('90%');
+    // Mettre à jour la position des flèches
+    const arrowWidthPosition = ((100 - 90) / 2) - 5;
+    $('.arrow-left').css('right', arrowWidthPosition + '%');
+    $('.arrow-right').css('left', arrowWidthPosition + '%');
     localStorage.clear();
+    // Met à jour le padding du texte pour la position des flèches
+    updateSyncTextPadding();
+});
+
+// Reset background color only
+$('#reset-bg-color').on('click', function () {
+    $('#bg-color').val('#282c34');
+    $('body').css('background-color', '#282c34');
+    localStorage.setItem('bgColor', '#282c34');
 });
 
 function formatText(command) {
@@ -720,6 +740,36 @@ function loadLocalStorage() {
     }
 }
 
+// --- MENU LATERAL ---
+function updateToggleBtnPosition() {
+    const menu = document.getElementById('side-menu');
+    const btn = document.getElementById('toggle-side-menu');
+    if (menu.classList.contains('side-menu-open')) {
+        btn.style.transform = 'translateX(-320px)';
+        document.body.classList.add('menu-open');
+    } else {
+        btn.style.transform = 'none';
+        document.body.classList.remove('menu-open');
+    }
+}
+$('#toggle-side-menu').on('click', function () {
+    const menu = $('#side-menu');
+    const icon = $('#side-menu-toggle-icon');
+    if (menu.hasClass('side-menu-open')) {
+        menu.removeClass('side-menu-open').addClass('side-menu-closed');
+        icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    } else {
+        menu.removeClass('side-menu-closed').addClass('side-menu-open');
+        icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    }
+    updateToggleBtnPosition();
+});
+$(document).ready(function () {
+    $('#side-menu').removeClass('side-menu-open').addClass('side-menu-closed');
+    $('#side-menu-toggle-icon').removeClass('fa-eye-slash').addClass('fa-eye');
+    updateToggleBtnPosition();
+});
+
 // Initialize settings
 loadState(); // Load state from the server
 loadLocalStorage(); // Load state from the local browser storage
@@ -733,28 +783,6 @@ $(document).ready(function () {
         const icon = $('#toggle-controls-icon');
         controlsBar.toggle();
         if (controlsBar.is(':visible')) {
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
-        } else {
-            icon.removeClass('fa-eye').addClass('fa-eye-slash');
-        }
-    });
-    // Toggle left controls popup
-    $('#toggle-controls-left').on('click', function () {
-        const leftPopup = $('#popup-controls-left');
-        const icon = $('#toggle-controls-left-icon');
-        leftPopup.toggle();
-        if (leftPopup.is(':visible')) {
-            icon.removeClass('fa-eye-slash').addClass('fa-eye');
-        } else {
-            icon.removeClass('fa-eye').addClass('fa-eye-slash');
-        }
-    });
-    // Toggle right controls popup
-    $('#toggle-controls-right').on('click', function () {
-        const rightPopup = $('#popup-controls-right');
-        const icon = $('#toggle-controls-right-icon');
-        rightPopup.toggle();
-        if (rightPopup.is(':visible')) {
             icon.removeClass('fa-eye-slash').addClass('fa-eye');
         } else {
             icon.removeClass('fa-eye').addClass('fa-eye-slash');
