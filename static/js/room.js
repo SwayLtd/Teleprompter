@@ -127,6 +127,10 @@ socket.on('update_properties', data => {
             $('#velocity').val(data['velocity'] * 10);
             $('#velocity-value').text((data['velocity'] * 100).toFixed(0) + '%');
             resetTimer = true;
+            // Si on est en lecture, adapter la vitesse de scroll immédiatement
+            if (isPlaying) {
+                toggleAutoScroll();
+            }
         }
         if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
             $('#sync-text').css('font-size', data['fontSize'] + 'px');
@@ -315,6 +319,10 @@ $('#velocity').on('input', () => {
     $('#velocity-value').text((getVelocity() * 100).toFixed(0) + '%');
     updateAndSave({ 'velocity': getVelocity() });
     resetReadingTimer();
+    // Si on est en lecture, adapter la vitesse de scroll immédiatement
+    if (isPlaying) {
+        toggleAutoScroll();
+    }
 });
 
 // Update the font size label when the font size slider is changed
@@ -515,37 +523,31 @@ $('#sync-text').on('scroll', () => {
 
 // Toggle the automatic scroll based on velocity and font size
 function toggleAutoScroll() {
+    clearInterval(autoScrollInterval);
     if (isPlaying) {
-        clearInterval(autoScrollInterval);
+        const syncText = document.getElementById('sync-text');
+        const scrollHeight = syncText.scrollHeight;
+        const clientHeight = syncText.clientHeight;
+        const distance = scrollHeight - clientHeight;
+        // Temps total de lecture en secondes (déjà calculé)
+        const totalSeconds = readingTotal > 0 ? readingTotal : 1;
+        // Intervalle d'animation (ms)
+        const intervalMs = 25;
+        // Pixels à parcourir à chaque tick pour finir en même temps partout
+        const pxPerInterval = distance / (totalSeconds * 1000 / intervalMs);
         autoScrollInterval = setInterval(() => {
-            const velocity = getVelocity();
-            const fontSize = parseInt($('#sync-text').css('font-size'));
-            const scrollTop = $('#sync-text').scrollTop();
-            const syncText = document.getElementById('sync-text');
-            const maxScroll = syncText.scrollHeight - syncText.clientHeight;
-            // Calcul du nouveau scroll
-            const newScrollTop = scrollTop + velocity * fontSize / 5.62;
-            if (newScrollTop >= maxScroll - 1) { // On tolère 1px de marge
-                $('#sync-text').scrollTop(maxScroll);
+            if (!isPlaying) return;
+            const currentScroll = syncText.scrollTop;
+            if (currentScroll + pxPerInterval >= distance) {
+                syncText.scrollTop = distance;
                 isPlaying = false;
                 $('#play-pause').html('<i class="fas fa-play"></i>');
-                updateAndSave({ scrollTop: maxScroll, 'isPlaying': false, 'velocity': getVelocity() });
-                clearInterval(autoScrollInterval);
-                autoScrollInterval = null;
                 stopReadingTimer();
-                updateSecondsBar();
-                return;
+                clearInterval(autoScrollInterval);
+            } else {
+                syncText.scrollTop = currentScroll + pxPerInterval;
             }
-            $('#sync-text').scrollTop(newScrollTop);
-            updateSecondsBar();
-        }, 25);
-        updateSecondsBar();
-        startReadingTimer();
-    } else {
-        clearInterval(autoScrollInterval);
-        autoScrollInterval = null;
-        stopReadingTimer();
-        updateSecondsBar();
+        }, intervalMs);
     }
 }
 
