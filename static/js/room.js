@@ -153,6 +153,7 @@ socket.on('update_properties', data => {
             resetReadingTimer();
         }
         updateSecondsBar();
+        updateSyncTextPadding(); // <-- Ajouté ici pour mettre à jour les spacers sur réception
     }
 });
 
@@ -175,6 +176,15 @@ $('#room-name').on('input', () => {
 
 // When the play/pause button is clicked, toggle the auto-scrolling state and send the updated settings to the server
 $('#play-pause').on('click', () => {
+    // Si on est à la fin du scroll, on remet au début avant de relancer
+    const syncText = document.getElementById('sync-text');
+    const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+    const isAtEnd = Math.abs($('#sync-text').scrollTop() - maxScroll) < 2;
+    if (!isPlaying && isAtEnd) {
+        $('#sync-text').scrollTop(0);
+        readingElapsed = 0;
+        updateSecondsBar();
+    }
     isPlaying = !isPlaying;
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
     if (window.matchMedia("(max-width: 426px)")) {

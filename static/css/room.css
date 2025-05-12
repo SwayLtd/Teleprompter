@@ -9,28 +9,35 @@ body {
     padding: 0;
     overflow: hidden;
     box-sizing: border-box;
-    padding-top: 40px !important;
 }
 
 .room-information {
-    position: fixed;
+    position: relative;
     top: 0;
-    left: 0;
-    width: 100vw;
-    min-height: 32px;
-    max-height: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 10vw;
+    min-height: 22px;
+    max-height: 28px;
     background-color: rgba(0, 0, 0, 0.6);
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    padding: 5px 0;
-    z-index: 1000;
+    padding: 2px 0 1px 0;
     pointer-events: auto;
     color: #fff;
-    font-size: 1.1em;
+    font-size: 0.98em;
     font-weight: 600;
     letter-spacing: 1px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+}
+
+#room-name {
+    width: 100%;
+    text-align: center;
+    display: block;
 }
 
 .prompter-text {
@@ -38,7 +45,7 @@ body {
     white-space: pre-wrap;
     font-size: 72px;
     margin: 0 auto;
-    top: 3%;
+    top: 0;
     left: 5%;
     right: 5%;
     width: 90%;
@@ -53,12 +60,17 @@ body {
     padding-bottom: 0 !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+    z-index: 1;
 }
 
 .prompter-text:focus {
     outline: none;
     box-shadow: none;
     border: none;
+}
+
+.text-center {
+    text-align: center;
 }
 
 #sync-text {
@@ -113,7 +125,7 @@ body {
     min-width: 260px;
     max-width: 340px;
     opacity: 1;
-    border: 1.5px solid #fff;
+    border: 3px solid #fff;
 }
 
 /* Popup Controls Right (design controls) */
@@ -133,7 +145,7 @@ body {
     min-width: 220px;
     max-width: 320px;
     opacity: 1;
-    border: 1.5px solid #fff;
+    border: 3px solid #fff;
 }
 
 /* Hide old .controls bar if still present */
@@ -208,6 +220,14 @@ body {
     cursor: pointer;
     width: 34px;
     margin-bottom: 5px;
+    margin-right: 8px;
+    /* Add horizontal spacing between buttons */
+}
+
+/* Remove right margin for the last button in a row */
+.main-controls-row .btn:last-child,
+.formatting-controls-row .btn:last-child {
+    margin-right: 0;
 }
 
 .btn:hover {
@@ -290,6 +310,13 @@ body {
 
 .slider-pair label {
     margin-bottom: 0 !important;
+}
+
+.slider-label-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
 }
 
 .sliders-group input[type="range"] {
@@ -470,6 +497,14 @@ body {
     z-index: 21;
 }
 
+.toggle-btn-wrapper-left {
+    position: relative;
+}
+
+.toggle-btn-wrapper-right {
+    position: relative;
+}
+
 #time-remaining {
     color: #fff;
     font-size: 1.2em;
@@ -486,10 +521,18 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.6);
     margin-top: 2px;
     margin-bottom: 2px;
     min-height: 18px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    max-width: 10vw;
+    left: 50%;
+    transform: translateX(-50%);
+    position: relative;
+    padding: 2px 0 1px 0;
+    z-index: 2;
 }
 
 #seconds-remaining {
@@ -499,4 +542,8 @@ body {
     letter-spacing: 1px;
     font-weight: 500;
     text-align: center;
+}
+
+#colorPicker {
+    display: none;
 }

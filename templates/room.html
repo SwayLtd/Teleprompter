@@ -1,5 +1,3 @@
-<!-- Depending of the font size, add a padding-top and padding-bottom on the prompt text -->
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,31 +15,29 @@
 </head>
 
 <body>
-    <div class="room-information"
-        style="display: flex; justify-content: center; align-items: center; position: relative; width: 100%; flex-direction: column;">
-        <span id="room-name" contenteditable spellcheck="false" style="text-align: center;"></span>
+    <div class="room-information">
+        <span id="room-name" contenteditable spellcheck="false" class="text-center"></span>
     </div>
     <div class="seconds-bar">
         <span id="seconds-remaining"></span>
     </div>
     <div class="prompter">
         <pre id="sync-text" class="prompter-text">
-            <div id="scroll-start-spacer" class="spacer-non-editable" aria-hidden="true" tabindex="-1"
-                style="user-select:none; pointer-events:none; outline:none;" contenteditable="false"></div>
-            <div id="sync-text-content" contenteditable="true" spellcheck="false"></div>
-            <div id="scroll-end-spacer" class="spacer-non-editable" aria-hidden="true" tabindex="-1"
-                style="user-select:none; pointer-events:none; outline:none;" contenteditable="false"></div>
+            <div id="scroll-start-spacer" class="spacer-non-editable" aria-hidden="true" tabindex="-1" contenteditable="false"></div>
+            <pre id="sync-text-content" contenteditable spellcheck="false"></pre>
+        <div id="scroll-end-spacer" class="spacer-non-editable" aria-hidden="true" tabindex="-1"
+            contenteditable="false"></div>
         </pre>
         <!-- Toggle buttons OUTSIDE popups, positioned at far left and right, at the bottom of the window -->
         <div class="popup-toggles-bar-bottom">
-            <div style="position: relative;">
+            <div class="toggle-btn-wrapper-left">
                 <button id="toggle-controls-left" class="btn" title="Show/hide left controls">
                     <i id="toggle-controls-left-icon" class="fas fa-eye"></i>
                 </button>
                 <!-- Small triangle at top right of left toggle -->
                 <span class="toggle-corner-triangle"></span>
             </div>
-            <div style="position: relative;">
+            <div class="toggle-btn-wrapper-right">
                 <button id="toggle-controls-right" class="btn" title="Show/hide right controls">
                     <i id="toggle-controls-right-icon" class="fas fa-eye"></i>
                 </button>
@@ -64,27 +60,23 @@
             </div>
             <div class="sliders-group">
                 <div class="slider-pair">
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
-                        <label for="velocity" style="margin-bottom:0;">Velocity: <span
-                                id="velocity-value"></span></label>
-                        <input id="velocity" type="range" min="1" max="10" value="1" step="0.5" style="margin-top:0;">
+                    <div class="slider-label-group">
+                        <label for="velocity">Velocity: <span id="velocity-value"></span></label>
+                        <input id="velocity" type="range" min="1" max="10" value="1" step="0.5">
                     </div>
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
-                        <label for="font-size" style="margin-bottom:0;">Font size: <span
-                                id="font-size-value"></span></label>
-                        <input id="font-size" type="range" min="45" max="96" value="72" style="margin-top:0;">
+                    <div class="slider-label-group">
+                        <label for="font-size">Font size: <span id="font-size-value"></span></label>
+                        <input id="font-size" type="range" min="45" max="96" value="72">
                     </div>
                 </div>
                 <div class="slider-pair">
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
-                        <label for="text-width" style="margin-bottom:0;">Text width: <span
-                                id="text-width-value"></span></label>
-                        <input id="text-width" type="range" min="45" max="90" value="90" style="margin-top:0;">
+                    <div class="slider-label-group">
+                        <label for="text-width">Text width: <span id="text-width-value"></span></label>
+                        <input id="text-width" type="range" min="45" max="90" value="90">
                     </div>
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0;">
-                        <label for="arrows-top" style="margin-bottom:0;">Arrows pos: <span
-                                id="arrows-top-value"></span></label>
-                        <input id="arrows-top" type="range" min="20" max="80" value="45" style="margin-top:0;">
+                    <div class="slider-label-group">
+                        <label for="arrows-top">Arrows pos: <span id="arrows-top-value"></span></label>
+                        <input id="arrows-top" type="range" min="20" max="80" value="45">
                     </div>
                 </div>
             </div>
@@ -109,7 +101,7 @@
     </div>
     <img id="arrow-left" class="arrow arrow-left" src="https://cdn-icons-png.flaticon.com/512/57/57043.png"
         alt="Arrow left" />
-    <img if="arrow-right" class="arrow arrow-right" src="https://cdn-icons-png.flaticon.com/512/57/57043.png"
+    <img id="arrow-right" class="arrow arrow-right" src="https://cdn-icons-png.flaticon.com/512/57/57043.png"
         alt="Arrow right" />
 
     <script src="/static/js/room.js"></script>
