@@ -187,11 +187,12 @@ $('#play-pause').on('click', () => {
     }
     isPlaying = !isPlaying;
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-    if (window.matchMedia("(max-width: 426px)")) {
-        updateAndSave({ 'isPlaying': isPlaying, 'velocity': getVelocity() });
-    } else {
-        updateAndSave({ scrollTop: $('#sync-text').scrollTop(), 'isPlaying': isPlaying, 'velocity': getVelocity() });
-    }
+    // Synchronize scroll position on play/pause
+    updateAndSave({
+        scrollTop: $('#sync-text').scrollTop(),
+        isPlaying: isPlaying,
+        velocity: getVelocity()
+    });
     toggleAutoScroll();
     if (isPlaying) {
         startReadingTimer();
