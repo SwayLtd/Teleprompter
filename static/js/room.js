@@ -35,7 +35,12 @@ function computeReadingTotal() {
 function updateSecondsBar() {
     // Clamp elapsed to total
     if (readingElapsed > readingTotal) readingElapsed = readingTotal;
-    document.getElementById('seconds-remaining').textContent = `${formatSeconds(readingElapsed)} / ${formatSeconds(readingTotal)}`;
+    // Correction : le temps affiché doit être raccord à un temps réel (1s = 1s)
+    // On corrige le temps total affiché en le divisant par le ratio de largeur
+    const widthRatio = getWidthRatio ? getWidthRatio() : 1;
+    const adjustedTotal = readingTotal / widthRatio;
+    const adjustedElapsed = readingElapsed / widthRatio;
+    document.getElementById('seconds-remaining').textContent = `${formatSeconds(adjustedElapsed)} / ${formatSeconds(adjustedTotal)}`;
 }
 
 function resetReadingTimer() {
@@ -90,6 +95,18 @@ function setSyncTextContent(html) {
     } else {
         nodes.forEach(n => syncText.appendChild(n));
     }
+}
+
+// --- Largeur de référence pour le calcul du ratio de vitesse ---
+const REFERENCE_WIDTH = 1920; // px, peut être ajusté selon vos besoins
+
+function getWidthRatio() {
+    // Largeur réelle de la zone de prompteur (ou de la fenêtre)
+    const prompter = document.getElementById('sync-text');
+    if (prompter) {
+        return REFERENCE_WIDTH / prompter.clientWidth;
+    }
+    return 1;
 }
 
 // When the socket connects to the server, print a message to the console
@@ -534,7 +551,9 @@ function toggleAutoScroll() {
         // Intervalle d'animation (ms)
         const intervalMs = 25;
         // Pixels à parcourir à chaque tick pour finir en même temps partout
-        const pxPerInterval = distance / (totalSeconds * 1000 / intervalMs);
+        // --- Ajout du ratio de largeur ---
+        const widthRatio = getWidthRatio();
+        const pxPerInterval = (distance / (totalSeconds * 1000 / intervalMs)) * widthRatio;
         autoScrollInterval = setInterval(() => {
             if (!isPlaying) return;
             const currentScroll = syncText.scrollTop;
