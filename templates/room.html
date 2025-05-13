@@ -88,6 +88,26 @@
                         <i class="fas fa-undo"></i>
                     </button>
                 </div>
+                <!-- Joystick vertical pad for scrolling + scroll indicator -->
+                <div class="side-menu-joystick" style="display:flex;flex-direction:row;align-items:center;gap:18px;">
+                    <div style="display:flex;flex-direction:column;align-items:center;">
+                        <label for="joystick-pad" style="color:#fff; font-size:1em;">Scroll pad:</label>
+                        <div id="joystick-pad" tabindex="0" aria-label="Scroll pad" title="Drag up/down to scroll" style="width:36px;height:160px;display:flex;align-items:center;justify-content:center;position:relative;">
+                            <span class="joystick-arrow joystick-arrow-up"><i class="fas fa-chevron-up"></i></span>
+                            <div class="joystick-thumb"></div>
+                            <span class="joystick-arrow joystick-arrow-down"><i class="fas fa-chevron-down"></i></span>
+                        </div>
+                    </div>
+                    <div class="scroll-indicator-vertical">
+                        <div class="scroll-indicator-bar">
+                            <div class="scroll-indicator-thumb"></div>
+                        </div>
+                        <div class="scroll-indicator-info">
+                            <span id="scroll-indicator-percent">0%</span>
+                            <span id="scroll-indicator-time">00:00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Floating button to toggle the sidebar menu -->

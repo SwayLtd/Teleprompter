@@ -119,62 +119,65 @@ socket.on('connect', () => {
 socket.on('update_properties', data => {
     if (data['room_id'] === room_id) {
         let resetTimer = false;
+        // Synchronisation du texte si fourni
         if (data['text'] !== undefined) {
             setSyncTextContent(data['text']);
             resetTimer = true;
         }
         if (data['room_name'] !== $('#room-name').text().trim() && data['room_name'] !== undefined) {
             $('#room-name').text(data['room_name']);
-            document.title = data['room_name'] + " - Sway Prompter";
+            document.title = data['room_name'] + ' - Sway Prompter';
         }
-        if (data['isPlaying'] !== isPlaying && data['isPlaying'] !== undefined) {
-            isPlaying = data['isPlaying'];
-            $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-            toggleAutoScroll();
-            if (isPlaying) {
-                startReadingTimer();
-            } else {
-                stopReadingTimer();
+        // Synchronisation de l'état lecture (isPlaying) AVANT le scroll
+        if (typeof data['isPlaying'] !== 'undefined') {
+            if (isPlaying !== data['isPlaying']) {
+                isPlaying = data['isPlaying'];
+                $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
+                toggleAutoScroll();
+                if (isPlaying) {
+                    startReadingTimer();
+                } else {
+                    stopReadingTimer();
+                }
             }
         }
-        if (data['scrollTop'] !== $('#sync-text').scrollTop() && data['scrollTop'] !== undefined) {
-            $('#sync-text').scrollTop(data['scrollTop']);
+        // Synchronisation du scroll en pourcentage
+        if (typeof data['scrollPercent'] !== 'undefined') {
+            const syncText = document.getElementById('sync-text');
+            const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+            let newScroll = 0;
+            if (maxScroll > 0) {
+                newScroll = data['scrollPercent'] * maxScroll;
+            }
+            syncText.scrollTop = newScroll;
+            updateScrollIndicator && updateScrollIndicator();
         }
-        if (data['velocity'] !== getVelocity() && data['velocity'] !== undefined) {
+        if (data['velocity'] !== getVelocity() && typeof data['velocity'] !== 'undefined') {
             $('#velocity').val(data['velocity'] * 10);
             $('#velocity-value').text((data['velocity'] * 100).toFixed(0) + '%');
-            resetTimer = true;
-            // Si on est en lecture, adapter la vitesse de scroll immédiatement
-            if (isPlaying) {
-                toggleAutoScroll();
-            }
         }
-        if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && data['fontSize'] !== undefined) {
-            $('#sync-text').css('font-size', data['fontSize'] + 'px');
+        if (data['fontSize'] !== parseInt($('#sync-text').css('font-size')) && typeof data['fontSize'] !== 'undefined') {
             $('#font-size').val(data['fontSize']);
             $('#font-size-value').text(data['fontSize'] + 'px');
-            resetTimer = true;
+            $('#sync-text').css('font-size', data['fontSize'] + 'px');
         }
-        if (data['textWidth'] !== parseInt($('#text-width').val()) && data['textWidth'] !== undefined) {
-            $('#sync-text').css('width', data['textWidth'] + '%');
+        if (data['textWidth'] !== parseInt($('#text-width').val()) && typeof data['textWidth'] !== 'undefined') {
             $('#text-width').val(data['textWidth']);
             $('#text-width-value').text(data['textWidth'] + '%');
-            // Change the arrow positions
-            const arrowWidthPosition = ((100 - parseInt(data['textWidth'])) / 2) - 5;
-            $('.arrow-left').css('right', arrowWidthPosition + '%');
-            $('.arrow-right').css('left', arrowWidthPosition + '%');
+            $('#sync-text').width(data['textWidth'] + '%');
         }
-        if (data['arrowTop'] !== parseInt($('arrows-top').val()) && data['arrowTop'] !== undefined) {
-            $('.arrow-left').css('top', data['arrowTop'] + '%');
-            $('.arrow-right').css('top', data['arrowTop'] + '%');
+        if (data['arrowTop'] !== parseInt($('#arrows-top').val()) && typeof data['arrowTop'] !== 'undefined') {
             $('#arrows-top').val(data['arrowTop']);
             $('#arrows-top-value').text(data['arrowTop'] + '%');
+            $('.arrow-left').css('top', data['arrowTop'] + '%');
+            $('.arrow-right').css('top', data['arrowTop'] + '%');
+            updateSyncTextPadding();
         }
         if (resetTimer) {
             resetReadingTimer();
         }
         updateSecondsBar();
-        updateSyncTextPadding(); // <-- Ajouté ici pour mettre à jour les spacers sur réception
+        updateSyncTextPadding();
     }
 });
 
@@ -207,8 +210,9 @@ $('#play-pause').on('click', () => {
         updateSecondsBar();
     }
     isPlaying = !isPlaying;
+    // Toujours envoyer isPlaying, même si la valeur ne change pas
     $('#play-pause').html(isPlaying ? '<i class="fas fa-pause"></i>' : '<i class="fas fa-play"></i>');
-    // Synchronize scroll position on play/pause
+    // Synchronize scroll position and isPlaying on play/pause
     updateAndSave({
         scrollTop: $('#sync-text').scrollTop(),
         isPlaying: isPlaying,
@@ -556,15 +560,19 @@ function toggleAutoScroll() {
         const pxPerInterval = (distance / (totalSeconds * 1000 / intervalMs)) * widthRatio;
         autoScrollInterval = setInterval(() => {
             if (!isPlaying) return;
-            const currentScroll = syncText.scrollTop;
-            if (currentScroll + pxPerInterval >= distance) {
-                syncText.scrollTop = distance;
+            const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+            let newScroll = syncText.scrollTop + pxPerInterval;
+            if (newScroll > maxScroll) newScroll = maxScroll;
+            syncText.scrollTop = newScroll;
+            updateSecondsBar();
+            updateScrollIndicator && updateScrollIndicator();
+            // Synchronisation du scroll en pourcentage à chaque tick
+            const scrollPercent = maxScroll > 0 ? syncText.scrollTop / maxScroll : 0;
+            socket.emit('properties_updated', { room_id: room_id, scrollPercent });
+            if (newScroll >= maxScroll) {
                 isPlaying = false;
                 $('#play-pause').html('<i class="fas fa-play"></i>');
-                stopReadingTimer();
                 clearInterval(autoScrollInterval);
-            } else {
-                syncText.scrollTop = currentScroll + pxPerInterval;
             }
         }, intervalMs);
     }
@@ -577,6 +585,22 @@ function getVelocity() {
 
 // Save the state of the app to the server
 function updateAndSave(properties) {
+    // Ajout : synchronisation du scroll en pourcentage si scrollTop est fourni
+    if (properties.scrollTop !== undefined && properties.scrollTop !== null) {
+        const syncText = document.getElementById('sync-text');
+        const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+        let scrollPercent = 0;
+        if (maxScroll > 0) {
+            scrollPercent = properties.scrollTop / maxScroll;
+        }
+        properties.scrollPercent = scrollPercent;
+        // On retire scrollTop pour éviter la confusion côté réception
+        delete properties.scrollTop;
+    }
+    // Toujours envoyer isPlaying si défini
+    if (typeof properties.isPlaying !== 'undefined') {
+        properties.isPlaying = !!properties.isPlaying;
+    }
     socket.emit('properties_updated', { 'room_id': room_id, ...properties });
 }
 
@@ -791,6 +815,137 @@ $(document).ready(function () {
     $('#side-menu-toggle-icon').removeClass('fa-eye-slash').addClass('fa-eye');
     updateToggleBtnPosition();
 });
+
+// --- JOYSTICK VERTICAL PAD ---
+(function setupJoystickPad() {
+    const pad = document.getElementById('joystick-pad');
+    const thumb = pad ? pad.querySelector('.joystick-thumb') : null;
+    if (!pad || !thumb) return;
+    const padHeight = 160;
+    const thumbHeight = 28;
+    let dragging = false;
+    let animationFrame = null;
+    let velocity = 0;
+    let syncText = document.getElementById('sync-text');
+    let lastTimestamp = null;
+
+    // --- Scroll indicator ---
+    const indicatorBar = document.querySelector('.scroll-indicator-bar');
+    const indicatorThumb = indicatorBar ? indicatorBar.querySelector('.scroll-indicator-thumb') : null;
+    const indicatorPercent = document.getElementById('scroll-indicator-percent');
+    const indicatorTime = document.getElementById('scroll-indicator-time');
+    const indicatorBarHeight = 120;
+    const indicatorThumbHeight = 16;
+
+    function updateScrollIndicator() {
+        if (!syncText) return;
+        const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+        const scrollTop = syncText.scrollTop;
+        const ratio = maxScroll > 0 ? scrollTop / maxScroll : 0;
+        // Thumb position
+        const minY = 0;
+        const maxY = indicatorBarHeight - indicatorThumbHeight;
+        const y = minY + (maxY - minY) * ratio;
+        if (indicatorThumb) indicatorThumb.style.top = y + 'px';
+        // Pourcentage
+        if (indicatorPercent) indicatorPercent.textContent = Math.round(ratio * 100) + '%';
+        // Temps restant : utiliser la même logique que seconds-remaining
+        if (indicatorTime) {
+            // Utilise la même logique que updateSecondsBar
+            const widthRatio = getWidthRatio ? getWidthRatio() : 1;
+            const adjustedTotal = readingTotal / widthRatio;
+            // Le temps restant dépend du ratio de scroll
+            let remaining = adjustedTotal * (1 - ratio);
+            if (remaining < 0) remaining = 0;
+            indicatorTime.textContent = formatSeconds(remaining);
+        }
+    }
+    if (syncText) {
+        syncText.addEventListener('scroll', updateScrollIndicator);
+        setTimeout(updateScrollIndicator, 500);
+    }
+
+    // --- Joystick logic ---
+    let startY = 0;
+    let padRect = null;
+    let neutralY = padHeight / 2 - thumbHeight / 2;
+    let currentOffset = 0;
+    let scrollInterval = null;
+
+    function setThumbToNeutral() {
+        thumb.style.top = neutralY + 'px';
+    }
+    setThumbToNeutral();
+
+    function joystickLoop(ts) {
+        if (!dragging) return;
+        if (!syncText) return;
+        if (lastTimestamp === null) lastTimestamp = ts;
+        const dt = (ts - lastTimestamp) / 1000;
+        lastTimestamp = ts;
+        // Vitesse max = 1200 px/sec (ajustable)
+        const maxSpeed = 1200;
+        // Sensibilité réduite (plus c'est petit, moins c'est sensible)
+        const sensitivity = 0.5;
+        // velocity = [-1,1], 0 = neutre
+        if (Math.abs(velocity) > 0.01) {
+            const oldScroll = syncText.scrollTop;
+            const delta = velocity * maxSpeed * dt * sensitivity;
+            // Correction du blocage : clamp sur la plage réelle
+            const maxScroll = syncText.scrollHeight - syncText.clientHeight;
+            let newScroll = syncText.scrollTop + delta;
+            if (newScroll < 0) newScroll = 0;
+            if (newScroll > maxScroll) newScroll = maxScroll;
+            syncText.scrollTop = newScroll;
+            updateScrollIndicator();
+            // Synchronisation si la position a changé significativement
+            if (Math.abs(newScroll - oldScroll) > 0.5) {
+                // Correction : forcer la synchronisation même si la valeur est identique (pour éviter le blocage)
+                updateAndSave({ scrollTop: syncText.scrollTop });
+            }
+        }
+        animationFrame = requestAnimationFrame(joystickLoop);
+    }
+
+    function onPadDown(e) {
+        dragging = true;
+        padRect = pad.getBoundingClientRect();
+        startY = (e.touches ? e.touches[0].clientY : e.clientY);
+        document.body.style.userSelect = 'none';
+        lastTimestamp = null;
+        animationFrame = requestAnimationFrame(joystickLoop);
+    }
+    function onPadMove(e) {
+        if (!dragging) return;
+        const y = (e.touches ? e.touches[0].clientY : e.clientY) - padRect.top;
+        // Clamp thumb position
+        const minY = 0;
+        const maxY = padHeight - thumbHeight;
+        let thumbY = Math.max(minY, Math.min(maxY, y - thumbHeight / 2));
+        thumb.style.top = thumbY + 'px';
+        // Calcul de la vitesse [-1,1] (0 = centre)
+        const center = padHeight / 2;
+        velocity = (thumbY + thumbHeight / 2 - center) / (padHeight / 2 - thumbHeight / 2);
+        // Inverser le sens pour que bas = positif (scroll down)
+        // velocity > 0 => scroll down, < 0 => scroll up
+    }
+    function onPadUp() {
+        dragging = false;
+        velocity = 0;
+        setThumbToNeutral();
+        document.body.style.userSelect = '';
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+    }
+    pad.addEventListener('mousedown', onPadDown);
+    pad.addEventListener('touchstart', onPadDown);
+    document.addEventListener('mousemove', onPadMove);
+    document.addEventListener('touchmove', onPadMove);
+    document.addEventListener('mouseup', onPadUp);
+    document.addEventListener('touchend', onPadUp);
+
+    // Met à jour l'indicateur au scroll programmatique
+    setInterval(updateScrollIndicator, 500);
+})();
 
 // Initialize settings
 loadState(); // Load state from the server

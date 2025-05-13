@@ -839,3 +839,127 @@ body {
     background: none !important;
     box-shadow: none !important;
 }
+
+/* Style for the joystick pad and thumb */
+.side-menu-joystick {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+#joystick-pad {
+    background: #222c38;
+    border-radius: 18px;
+    border: 2px solid #444;
+    position: relative;
+    cursor: grab;
+    transition: background 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+#joystick-pad:active {
+    background: #1a2027;
+}
+.joystick-thumb {
+    width: 28px;
+    height: 28px;
+    background: #61dafb;
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    top: 66px;
+    box-shadow: 0 2px 8px #61dafb55;
+    border: 2px solid #fff;
+    transition: background 0.2s;
+    cursor: grab;
+}
+#joystick-pad:active .joystick-thumb {
+    background: #21a1c4;
+}
+.joystick-arrow {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #61dafb;
+    font-size: 1.2em;
+    opacity: 0.85;
+    pointer-events: none;
+    z-index: 2;
+    text-shadow: 0 1px 4px #0002;
+}
+.joystick-arrow-up {
+    top: 4px;
+}
+.joystick-arrow-down {
+    bottom: 4px;
+}
+
+/* Style for the vertical scroll indicator */
+.scroll-indicator-vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 160px;
+    width: 32px;
+    margin-left: 4px;
+    gap: 4px;
+    position: relative;
+}
+.scroll-indicator-icon {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #61dafb;
+    font-size: 1.3em;
+    background: #222c38;
+    border-radius: 50%;
+    padding: 2px;
+    z-index: 2;
+    box-shadow: 0 1px 4px #0002;
+}
+.scroll-indicator-bar {
+    position: relative;
+    width: 8px;
+    height: 120px;
+    background: #222c38;
+    border-radius: 4px;
+    border: 1px solid #444;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+}
+.scroll-indicator-thumb {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 16px;
+    background: #61dafb;
+    border-radius: 6px;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px #61dafb55;
+    top: 0;
+    transition: top 0.15s cubic-bezier(.4,0,.2,1);
+    pointer-events: none;
+}
+.scroll-indicator-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 6px;
+    color: #fff;
+    font-size: 0.95em;
+    gap: 2px;
+}
+#scroll-indicator-percent {
+    font-weight: 600;
+    font-size: 1em;
+}
+#scroll-indicator-time {
+    font-size: 0.95em;
+    opacity: 0.85;
+}
