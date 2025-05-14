@@ -27,21 +27,44 @@ Sway Teleprompter: A collaborative teleprompter tool designed for real-time, mul
 * [X] Timer formatting (00:00:00 / 00:00:00)
 * [X] Add the space before and after the text automatically depending on the text to start and end where the arrows are
 * [X] Add a scrolling pad on controls side menu
+* [ ] Text editing, synced regularly if edited, not when the user is not editing the text
+* [ ] (Phone remote) 16:9 prompter preview (can be hidden)
+* [ ] (Phone remote) Separate text editor
+* [ ] Add icons for sliders (speedometer for velocity)
+* [ ] Add a timer before the text scrolling starts (like a countdown)
+* [ ] Text before reading line grayed out
+* [ ] Option to show a opacited background over the text to "hightlight" the text reading area
+* [ ] Right click text editor
+* [ ] Text spacing
+* [ ] Screen recording
+* [ ] Return to top button
+* [ ] Font selection
+* [ ] Multriple languages support
+* [ ] Supports reflection by creating a gradient in background color
+* [ ] For phone remote, add a button to pause the text scrolling by long pressing the button (toggle to enable long press pausing)
+* [ ] Information menu (shortcuts, usage like long press to pause on phone, etc.)
 * [ ] Make a new phone interface like the side menu for a remote use
 * [ ] Remove jQuery to use only vanilla JavaScript
 * [ ] Moving all isPlaying changes to toogleAutoScroll()
 * [ ] Limit the number of interface of the same room opened at the same time
 * [ ] Button to invert the arrow shortcuts and wheel scroll direction
 * [ ] Add a button to fullscreen the prompter
+* [ ] Partnership with a teleprompter manufacturer to create a hardware version of Sway Teleprompter or to suggest to buy a teleprompter (with Sway Teleprompter integrated?)
+* Product page ([Elgato Prompter product page](https://www.elgato.com/fr/fr/p/prompter) + [Prompter image with feature text scroll inside example](https://www.solutionsprompteur.com/en/home/))
+* Sync record with camera recording or with the video recording software
 
 ### Planned Features
 
 * [ ] UI v2 (new phone remote, new controls)
-* [ ] Scroll pad for mobile
 * [ ] Implement Redis to store rate limiting data and for caching to improve performances (don't forget Handle Cache Invalidation)
-* [ ] Phone remote v2
+* [ ] Phone remote v2 (scroll pad, new design)
+* [ ] Voice sync technology
+* [ ] Automatic captions linked to the prompter text
+* [ ] Custom keyboard shortcuts
+* [ ] Elgato stream deck integration
 * [ ] Bluetooth remote implementation
 * [ ] Integrated audio recorder (compatible with ASIO driver?)
+* [ ] Paraphrase and translate text with AI
 
 ### Implemented Features
 
